@@ -16,7 +16,12 @@ function parseObject(object) {
             .replace(/import\([^\)]*\)/g, "")
             .replace(/console|eval\([^\)]*\)|Function\([^\)]*\)/g, "");
 
-        return Function(code)();
+        try {
+            return Function(code)();
+        }
+        catch {
+            return undefined;
+        }
     }
     else return undefined;
 }
@@ -90,7 +95,7 @@ export class ChatCommandBuilder {
         parameters: [],
         permission: 0,
         isStrict: false,
-        execute: undefined
+        execute: () => undefined
     };
 
     setPermissionLevel(value) {

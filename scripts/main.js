@@ -19,3 +19,17 @@ ChatCommandBuilder.register("@g")
 
     return player.getGameMode();
 });
+
+ChatCommandBuilder.register("@str")
+
+ChatCommandBuilder.commands.on(ev => {
+    if (ev.onExecuteInfo.name === "@str") {
+        ev.definition.execute = () => ev.onExecuteInfo.parameters.getAll()[0].value;
+    }
+});
+
+ChatCommandBuilder.register("@test")
+.parameters.define("a", { type: "number", isOptional: true })
+.onExecute(({ parameters }) => {
+    return parameters.get("a");
+});

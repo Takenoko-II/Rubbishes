@@ -177,13 +177,25 @@ interface ChatCommandParameters {
     /**
      * 渡されたすべての引数を取得します。
      */
-    getAll(): ChatCommandParameterDefinition[];
+    getAll(): ChatCommandParameter[];
 
     /**
      * 特定のIDの引数が有効な値であるか否かを返します。
      * @param id 引数のID
      */
     isValid(id: string): boolean;
+}
+
+interface ChatCommandParameter {
+    /**
+     * 引数のID
+     */
+    readonly id: string;
+
+    /**
+     * 引数に渡された値
+     */
+    readonly value: string | number | boolean | object | symbol | undefined;
 }
 
 interface ChatCommandExecuteEvent {
