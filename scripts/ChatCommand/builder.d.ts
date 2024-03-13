@@ -1,7 +1,5 @@
 import { Player } from "@minecraft/server";
 
-import { Numeric, Random, utils } from "../lib/index";
-
 export class ChatCommandBuilder {
     /**
      * 権限レベルを設定します。
@@ -21,7 +19,7 @@ export class ChatCommandBuilder {
     /**
      * 実行時に呼び出される関数を定義します。
      */
-    onExecute(callbackFn: (arg: ChatCommandExecuteEvent) => any): ChatCommandBuilder;
+    onExecute(callbackFn: (arg: ChatCommandOnExecuteInfo) => any): ChatCommandBuilder;
 
     /**
      * コマンドを登録します。
@@ -40,6 +38,8 @@ export class ChatCommandBuilder {
      * 登録されたコマンド
      */
     static readonly commands: ChatCommandDefinitions;
+
+    static readonly prototype: ChatCommandBuilder;
 }
 
 interface ChatCommandParameterRegisterer {
@@ -106,6 +106,16 @@ interface ChatCommandDefinitions {
      * 全てのコマンドの情報を取得します。
      */
     getAll(): ChatCommandDefinition[];
+
+    /**
+     * コマンドが実行された際に呼び出されるコールバック関数を登録します。
+     */
+    on<T extends (arg: ChatCommandExecuteEvent) => void>(callbackFn: T): T;
+
+    /**
+     * コマンドが実行された際に呼び出されるコールバック関数の登録を解除します。
+     */
+    off<T extends (arg: ChatCommandExecuteEvent) => void>(callbackFn: T): T;
 }
 
 interface ChatCommandParameterDefinition {
@@ -130,7 +140,7 @@ interface ChatCommandParameterDefinition {
     defaultValue?: any;
 }
 
-interface ChatCommandExecuteEvent {
+interface ChatCommandOnExecuteInfo {
     /**
      * コマンド名
      */
@@ -174,4 +184,21 @@ interface ChatCommandParameters {
      * @param id 引数のID
      */
     isValid(id: string): boolean;
+}
+
+interface ChatCommandExecuteEvent {
+    /**
+     * 実行時の情報
+     */
+    readonly onExecuteInfo: ChatCommandOnExecuteInfo;
+
+    /**
+     * 定義に関する情報
+     */
+    readonly definition: ChatCommandDefinition;
+
+    /**
+     * コールバックの実行をキャンセルするか否か
+     */
+    cancel: boolean;
 }

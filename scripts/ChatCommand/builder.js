@@ -1,4 +1,4 @@
-import { Player, system } from "@minecraft/server";
+import { Player, system, world } from "@minecraft/server";
 
 import { Numeric, Random, utils } from "../lib/index";
 
@@ -81,7 +81,7 @@ function parse(value, type, strict = false) {
 export class ChatCommandBuilder {
     constructor(symbol) {
         if (symbol !== PRIVATE_CONSTRUCTOR_SYMBOL) {
-            throw new Error();
+            throw new Error("クラス外からのconstructorの呼び出しは禁止されています");
         }
     }
 
@@ -214,7 +214,8 @@ export class ChatCommandBuilder {
 
         const flags = {
             sendOutput: true,
-            fail: false
+            fail: false,
+            cancel: false
         };
 
         function send(value) {
@@ -226,15 +227,16 @@ export class ChatCommandBuilder {
             const message = `@${executor.name} ran §a${commandName}§r; §e>>>§r ${uuid}§r: ${utils.stringify(value)}`;
 
             if (value instanceof Error || flags.fail === true) {
-                executor.sendMessage(message.replace(uuid, "§cfailed"));
+                world.sendMessage(message.replace(uuid, "§cfailed"));
             }
-            else executor.sendMessage(message.replace(uuid, "§asuccess"));
+            else world.sendMessage(message.replace(uuid, "§asuccess"));
         }
 
         for (const { id, isOptional, defaultValue } of registeredParameterList) {
             if (parameters.some(_ => _.id === id)) {
                 if (command.isStrict === true && parameters.find(_ => _.id === id).value === TYPEERROR_SYMBOL) {
                     send(new TypeError("unexpected type parameter: strict-mode"));
+                    flags.fail = true;
                     return true;
                 }
                 continue;
@@ -242,6 +244,7 @@ export class ChatCommandBuilder {
 
             if (isOptional === false) {
                 send(new TypeError("missing parameter: " + id));
+                flags.fail = true;
                 return true;
             }
             else {
@@ -309,10 +312,32 @@ export class ChatCommandBuilder {
             }
         };
 
+        for (const callbackFn of ChatCommandBuilder.#subscribedCallbacks) {
+            callbackFn({
+                definition: ChatCommandBuilder.commands.get(data.name),
+                onExecuteInfo: data,
+                get cancel() {
+                    return flags.cancel;
+                },
+                set cancel(value) {
+                    if (typeof value !== "boolean") {
+                        throw new TypeError();
+                    }
+
+                    flags.cancel = value;
+                }
+            });
+        }
+
         try {
             system.runTimeout(() => {
-                const result = command.execute(data);
-                send(result);
+                if (flags.cancel === false) {
+                    const result = command.execute(data);
+                    send(result);
+                }
+                else {
+                    send(new Error("command execution was canceled"));
+                }
             });
         }
         catch (error) {
@@ -324,16 +349,36 @@ export class ChatCommandBuilder {
 
     static #registeredCommands = [];
 
+    static #subscribedCallbacks = [];
+
     static commands = {
         get: (name) => {
             if (typeof name !== "string") {
                 throw new TypeError();
             }
 
-            return new ChatCommandDefinition(this.#registeredCommands.find(_.name === name));
+            return new ChatCommandDefinition(this.#registeredCommands.find(_ => _.name === name));
         },
         getAll: () => {
             return this.#registeredCommands.map(_ => new ChatCommandDefinition(_));
+        },
+        on: (callbackFn) => {
+            if (typeof callbackFn !== "function") {
+                throw new TypeError();
+            }
+
+            this.#subscribedCallbacks.push(callbackFn);
+
+            return callbackFn;
+        },
+        off: (callbackFn) => {
+            if (typeof callbackFn !== "function") {
+                throw new TypeError();
+            }
+
+            this.#subscribedCallbacks = this.#subscribedCallbacks.filter(_ => _ !== callbackFn);
+
+            return callbackFn;
         }
     };
 }
