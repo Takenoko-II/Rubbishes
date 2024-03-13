@@ -12,13 +12,9 @@ function parseObject(object) {
     }
 
     if ((object.startsWith("{") && object.endsWith("}")) || (object.startsWith("[") && object.endsWith("]"))) {
-        const code = [
-            `const object = (${object});`,
-            "if (typeof object === 'object' && object !== null) {",
-                "return object;",
-            "}",
-            "else return undefined;"
-        ].join(" ");
+        const code = `return ${object};`
+            .replace(/import\([^\)]*\)/g, "")
+            .replace(/console|eval\([^\)]*\)|Function\([^\)]*\)/g, "");
 
         return Function(code)();
     }
