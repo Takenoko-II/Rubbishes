@@ -1,11 +1,14 @@
 import { Numeric } from "./Numeric.js";
 
 export class Utilities {
-    stringify(data, space = 4) {
+    stringify(data, prototype = false, space = 4) {
         if (!Numeric.isNumeric(space)) {
             throw new TypeError();
         }
-    
+        else if (typeof prototype !== "boolean") {
+            throw new TypeError();
+        }
+
         return (function _(object, indentationCount) {
             switch (typeof object) {
                 case "string": return "§r§6\"" + object + "§r§6\"§f";
@@ -41,34 +44,43 @@ export class Utilities {
                     }
         
                     let result = "§r§f" + ((Array.isArray(object)) ? "[" : "{");
-        
-                    for (const [key, value] of Object.entries(object)) {
+
+                    let keyCount = 0;
+                    const keys = [];
+
+                    if (prototype === true) {
+                        for (const _ in object) {
+                            keyCount++;
+                            keys.push(_);
+                        }
+                    }
+                    else {
+                        for (const _ of Object.keys(object)) {
+                            keyCount++;
+                            keys.push(_);
+                        }
+                    }
+
+                    let i = 0;
+                    for (const key of keys) {
+                        i++;
+
+                        const value = object[key];
+
                         if (typeof value === "object") {
-                            if (Array.isArray(object)) {
-                                result += "\n" + indentation + _(value, indentationCount + 1);
-                            }
-                            else {
-                                result += "\n" + indentation + "§b" + key + "§b: " + _(value, indentationCount + 1);
-                            }
+                            if (Array.isArray(object)) result += "\n" + indentation + _(value, indentationCount + 1);
+                            else result += "\n" + indentation + "§b" + key + "§b: " + _(value, indentationCount + 1);
                         }
                         else {
-                            if (Array.isArray(object)) {
-                                result += "\n" + indentation + _(value);
-                            }
-                            else {
-                                result += "\n" + indentation + "§b" + key + "§b: " + _(value);
-                            }
+                            if (Array.isArray(object)) result += "\n" + indentation + _(value);
+                            else result += "\n" + indentation + "§b" + key + "§b: " + _(value);
                         }
         
-                        if (Object.keys(object).indexOf(key) !== Object.keys(object).length - 1) {
-                            result += ",";
-                        }
+                        if (i < keyCount) result += ",";
                     }
-    
-                    if (Object.keys(object).length > 0) {
-                        result += "\n" + indentation.slice(space);
-                    }
-        
+
+                    if (keyCount > 0) result += "\n" + indentation.slice(space);
+
                     return result += Array.isArray(object) ? "]" : "}";
                 }
                 default:
@@ -132,7 +144,12 @@ export class Utilities {
         }
 
         console.warn(...list);
-    }    
+    }
+
+    here() {
+        const { stack } = new Error();
+        return stack.replace(/\s+at here \(.+Utilities\.js:\d+\)\s+at /g, "").replace(/\n/g, "");
+    }
 }
 
 export const utils = new Utilities();

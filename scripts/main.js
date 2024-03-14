@@ -4,7 +4,7 @@ import "./prototypePollution/index";
 
 import { ChatCommandBuilder } from "./ChatCommand/index";
 
-import { MultiDimensionalVector } from "./lib/index";
+import { MultiDimensionalVector, utils } from "./lib/index";
 
 ChatCommandBuilder.register("@g")
 .setPermissionLevel(1)
@@ -18,18 +18,4 @@ ChatCommandBuilder.register("@g")
     player.playSound("random.click", { volume: 10, pitch: 1 });
 
     return player.getGameMode();
-});
-
-ChatCommandBuilder.register("@str")
-
-ChatCommandBuilder.commands.on(ev => {
-    if (ev.onExecuteInfo.name === "@str") {
-        ev.definition.execute = () => ev.onExecuteInfo.parameters.getAll()[0].value;
-    }
-});
-
-ChatCommandBuilder.register("@test")
-.parameters.define("a", { type: "number", isOptional: true })
-.onExecute(({ parameters }) => {
-    return parameters.get("a");
 });

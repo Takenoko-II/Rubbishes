@@ -220,7 +220,8 @@ export class ChatCommandBuilder {
         const flags = {
             sendOutput: true,
             fail: false,
-            cancel: false
+            cancel: false,
+            showPrototype: false
         };
 
         function send(value) {
@@ -229,7 +230,7 @@ export class ChatCommandBuilder {
             }
 
             const uuid = Random.uuid();
-            const message = `@${executor.name} ran §a${commandName}§r; §e>>>§r ${uuid}§r: ${utils.stringify(value)}`;
+            const message = `@${executor.name} ran §a${commandName}§r; §e>>>§r ${uuid}§r: ${utils.stringify(value, flags.showPrototype)}`;
 
             if (value instanceof Error || flags.fail === true) {
                 world.sendMessage(message.replace(uuid, "§cfailed"));
@@ -284,6 +285,16 @@ export class ChatCommandBuilder {
 
                 flags.fail = value;
             },
+            get showPrototype() {
+                return flags.showPrototype;
+            },
+            set showPrototype(value) {
+                if (typeof value !== "boolean") {
+                    throw new TypeError();
+                }
+
+                flags.showPrototype = value;
+            },
             get parameters() {
                 return {
                     get(id) {
@@ -334,20 +345,18 @@ export class ChatCommandBuilder {
             });
         }
 
-        try {
-            system.runTimeout(() => {
+        system.runTimeout(() => {
+            try {
                 if (flags.cancel === false) {
                     const result = command.execute(data);
                     send(result);
                 }
-                else {
-                    send(new Error("command execution was canceled"));
-                }
-            });
-        }
-        catch (error) {
-            send(error);
-        }
+                else send(new Error("command execution was canceled"));
+            }
+            catch (error) {
+                send(error);
+            }
+        });
 
         return true;
     }

@@ -2,9 +2,10 @@ export class Utilities {
     /**
      * 渡された値を文字列に変換します。
      * @param data 任意の値
+     * @param prototype プロトタイプを表示するか否か
      * @param space スペースの文字数
      */
-    stringify(data: any, space?: number): string;
+    stringify(data: any, prototype?: boolean, space?: number): string;
 
     /**
      * 値をシャローコピーして返します。
@@ -30,6 +31,11 @@ export class Utilities {
      * @param values 任意の値
      */
     out(...values: any[]): void;
+
+    /**
+     * この関数が実行された場所を返します。
+     */
+    here(): string;
 }
 
 export const utils: Utilities;

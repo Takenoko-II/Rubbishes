@@ -165,6 +165,11 @@ interface ChatCommandOnExecuteInfo {
      * 実行結果を失敗として送信するか否か
      */
     fail: boolean;
+
+    /**
+     * 実行結果にオブジェクトのプロトタイプも表示するか否か
+     */
+    showPrototype: boolean;
 }
 
 interface ChatCommandParameters {
