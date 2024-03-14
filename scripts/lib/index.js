@@ -11,3 +11,5 @@ export * from "./Random.js";
 export * from "./MultiDimensionalVector.js";
 
 export * from "./CuboidArea.js";
+
+export * from "./Tuple.js";

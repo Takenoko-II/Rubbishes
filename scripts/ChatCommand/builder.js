@@ -1,6 +1,6 @@
 import { Player, system, world } from "@minecraft/server";
 
-import { Numeric, Random, utils } from "../lib/index";
+import { Numeric, Random, Tuple, utils } from "../lib/index";
 
 const PRIVATE_CONSTRUCTOR_SYMBOL = Symbol();
 const TYPEERROR_SYMBOL = Symbol("Unexpected type parameter");
@@ -329,20 +329,23 @@ export class ChatCommandBuilder {
         };
 
         for (const callbackFn of ChatCommandBuilder.#subscribedCallbacks) {
-            callbackFn({
-                definition: ChatCommandBuilder.commands.get(data.name),
-                onExecuteInfo: data,
-                get cancel() {
-                    return flags.cancel;
-                },
-                set cancel(value) {
-                    if (typeof value !== "boolean") {
-                        throw new TypeError();
+            try {
+                callbackFn({
+                    definition: ChatCommandBuilder.commands.get(data.name),
+                    onExecuteInfo: data,
+                    get cancel() {
+                        return flags.cancel;
+                    },
+                    set cancel(value) {
+                        if (typeof value !== "boolean") {
+                            throw new TypeError();
+                        }
+    
+                        flags.cancel = value;
                     }
-
-                    flags.cancel = value;
-                }
-            });
+                });
+            }
+            catch {}
         }
 
         system.runTimeout(() => {
@@ -363,7 +366,7 @@ export class ChatCommandBuilder {
 
     static #registeredCommands = [];
 
-    static #subscribedCallbacks = [];
+    static #subscribedCallbacks = new Set();
 
     static commands = {
         get: (name) => {
@@ -380,8 +383,11 @@ export class ChatCommandBuilder {
             if (typeof callbackFn !== "function") {
                 throw new TypeError();
             }
+            else if (this.#subscribedCallbacks.has(callbackFn)) {
+                throw new Error();
+            }
 
-            this.#subscribedCallbacks.push(callbackFn);
+            this.#subscribedCallbacks.add(callbackFn);
 
             return callbackFn;
         },
@@ -390,7 +396,7 @@ export class ChatCommandBuilder {
                 throw new TypeError();
             }
 
-            this.#subscribedCallbacks = this.#subscribedCallbacks.filter(_ => _ !== callbackFn);
+            this.#subscribedCallbacks.delete(callbackFn);
 
             return callbackFn;
         }

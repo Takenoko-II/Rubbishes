@@ -4,7 +4,7 @@ import "./prototypePollution/index";
 
 import { ChatCommandBuilder } from "./ChatCommand/index";
 
-import { MultiDimensionalVector, utils } from "./lib/index";
+import { MultiDimensionalVector, Tuple, utils } from "./lib/index";
 
 ChatCommandBuilder.register("@g")
 .setPermissionLevel(1)
