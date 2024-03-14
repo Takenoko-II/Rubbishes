@@ -1,4 +1,4 @@
-export class Tuple extends Array {
+export class Tuple<T> extends Array<T> {
     /**
      * @param arrayLength length of array
      */
@@ -30,5 +30,7 @@ export class Tuple extends Array {
      */
     override static from<T, U>(arrayLike: ArrayLike<T>, mapfn: (v: T, k: number) => U, thisArg?: any): Tuple<U>;
 
-    static isTuple(arg: any): boolean;
+    static isTuple(arg: any): arg is any[];
+
+    static readonly prototype: Tuple;
 }
