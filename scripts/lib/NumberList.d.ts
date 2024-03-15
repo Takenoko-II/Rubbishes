@@ -1,3 +1,5 @@
+import { Tuple } from "./Tuple";
+
 export const NumberList: NumberList;
 
 interface NumberList {
@@ -31,5 +33,5 @@ interface NumberList {
      * @param length 配列の長さ
      * @param modifier この関数の返り値が格納される
      */
-    create(length: number, modifier: (i: number) => number): number[];
+    create(length?: number, modifier?: (i: number) => number): Tuple<number>;
 }

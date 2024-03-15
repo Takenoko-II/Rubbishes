@@ -1,3 +1,7 @@
+import { Numeric } from "./Numeric";
+
+import { Tuple } from "./Tuple";
+
 export const NumberList = {
     isInvalid(list) {
         if (!Array.isArray(list)) return true;
@@ -33,14 +37,18 @@ export const NumberList = {
         if (this.isInvalid(list)) throw new TypeError("引数は数値の配列のみ許可されています");
         return list.reduce((a, b) => Math.max(a, b));
     },
-    create(length, modifier) {
-        return [...Array(length)].map((_, index) => {
+    create(length = 0, modifier = i => i) {
+        if (!(Numeric.isNumeric(length) && typeof modifier === "function")) {
+            throw new TypeError();
+        }
+
+        return new Tuple(...[...Array(length)].map((_, index) => {
             const value = modifier(index);
 
-            if (typeof value === "number") {
+            if (Numeric.isNumeric(value)) {
                 return value;
             }
             else throw new TypeError();
-        });
+        }));
     }
 }
