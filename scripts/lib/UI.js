@@ -1,0 +1,613 @@
+import { Player } from "@minecraft/server";
+
+import { ActionFormData, ModalFormData, MessageFormData } from "@minecraft/server-ui";
+
+import { Numeric } from "./Numeric";
+
+export class ActionFormBuilder {
+    #data = {
+        title: "",
+        body: "",
+        buttons: [],
+        cancelationCallbacks: {
+            "UserBusy": new Set(),
+            "UserClosed": new Set(),
+            "Any": new Set()
+        },
+        callbackFn: () => undefined
+    };
+
+    title(text) {
+        if (typeof text !== "string") {
+            throw new TypeError();
+        }
+
+        this.#data.title = text;
+
+        return this;
+    }
+
+    body(...text) {
+        if (!Array.isArray(text)) {
+            throw new TypeError();
+        }
+        else if (text.some(_ => typeof _ !== "string")) {
+            throw new TypeError();
+        }
+
+        this.#data.body = text.join("\n");
+
+        return this;
+    }
+
+    button(name, texture) {
+        if (typeof name !== "string") {
+            throw new TypeError();
+        }
+
+        const button = { name };
+
+        this.#data.buttons.push(button);
+
+        if (typeof texture === "string") button.texture = texture;
+
+        const that = this;
+
+        return {
+            on(callbackFn) {
+                if (typeof callbackFn !== "function") {
+                    throw new TypeError();
+                }
+
+                button.callbackFn = callbackFn;
+
+                return that;
+            },
+            get pass() {
+                return that;
+            },
+            set pass(_) {
+                throw new Error();
+            }
+        };
+    }
+
+    get cancelation() {
+        const that = this;
+
+        return {
+            on(value, callbackFn) {
+                if (typeof callbackFn !== "function") {
+                    throw new TypeError();
+                }
+
+                switch (value) {
+                    case "Any": {
+                        that.#data.cancelationCallbacks.Any.add(callbackFn);
+                        break;
+                    }
+                    case "UserBusy": {
+                        that.#data.cancelationCallbacks.UserBusy.add(callbackFn);
+                        break;
+                    }
+                    case "UserClosed": {
+                        that.#data.cancelationCallbacks.UserClosed.add(callbackFn);
+                        break;
+                    }
+                    default: throw new Error();
+                }
+
+                return that;
+            },
+            off(callbackFn) {
+                that.#data.cancelationCallbacks.Any.delete(callbackFn);
+                that.#data.cancelationCallbacks.UserBusy.delete(callbackFn);
+                that.#data.cancelationCallbacks.UserClosed.delete(callbackFn);
+
+                return that;
+            }
+        };
+    }
+
+    set cancelation(_) {
+        throw new Error();
+    }
+
+    show(player) {
+        if (!(player instanceof Player)) {
+            throw new TypeError();
+        }
+
+        if (this.#data.title === undefined) {
+            throw new Error("unset title");
+        }
+
+        const form = new ActionFormData()
+        .title(this.#data.title);
+
+        if (this.#data.body !== undefined) {
+            form.body(this.#data.body);
+        }
+
+        for (const button of this.#data.buttons) {
+            form.button(button.name, button.texture);
+        }
+
+        form.show(player).then(response => {
+            if (response.selection === undefined) {
+                this.#data.cancelationCallbacks.Any.forEach(callbackFn => {
+                    callbackFn(player);
+                });
+
+                if (response.cancelationReason === "UserBusy") {
+                    this.#data.cancelationCallbacks.UserBusy.forEach(callbackFn => {
+                        callbackFn(player);
+                    });
+                }
+                else if (response.cancelationReason === "UserClosed") {
+                    this.#data.cancelationCallbacks.UserClosed.forEach(callbackFn => {
+                        callbackFn(player);
+                    });
+                }
+
+                return;
+            }
+
+            const button = this.#data.buttons[response.selection];
+
+            if (button.callbackFn) {
+                button.callbackFn(player);
+            }
+
+            this.#data.callbackFn({ buttonName: button.name, player });
+        });
+    }
+
+    onPush(callbackFn) {
+        if (typeof callbackFn !== "function") {
+            throw new TypeError();
+        }
+
+        this.#data.callbackFn = callbackFn;
+
+        return this;
+    }
+}
+
+export class ModalFormBuilder {
+    #data = {
+        title: "",
+        values: [],
+        cancelationCallbacks: {
+            "UserBusy": new Set(),
+            "UserClosed": new Set(),
+            "Any": new Set()
+        },
+        callbackFn: () => undefined
+    };
+
+    title(text) {
+        if (typeof text !== "string") {
+            throw new TypeError();
+        }
+
+        this.#data.title = text;
+
+        return this;
+    }
+
+    toggle(id, label, defaultValue = false) {
+        if (typeof id !== "string") {
+            throw new TypeError();
+        }
+        else if (typeof label !== "string") {
+            throw new TypeError();
+        }
+        else if (typeof defaultValue !== "boolean") {
+            throw new TypeError();
+        }
+
+        const toggle = { id, type: "toggle", label, defaultValue };
+
+        this.#data.values.push(toggle);
+
+        return this;
+    }
+
+    slider(id, label, range, step = 1, defaultValue = 0) {
+        if (typeof id !== "string") {
+            throw new TypeError();
+        }
+        else if (typeof label !== "string") {
+            throw new TypeError();
+        }
+        else if (!(typeof range === "object" && range !== null)) {
+            throw new TypeError();
+        }
+        else if (!(Numeric.isNumeric(range.min) && Numeric.isNumeric(range.max))) {
+            throw new TypeError();
+        }
+        else if (!Numeric.isNumeric(step)) {
+            throw new TypeError();
+        }
+        else if (!Numeric.isNumeric(defaultValue)) {
+            throw new TypeError();
+        }
+
+        const slider = { id, type: "slider", label, range, step, defaultValue };
+
+        this.#data.values.push(slider);
+
+        return this;
+    }
+
+    dropdown(id, label, list, defaultValueIndex = 0) {
+        if (typeof id !== "string") {
+            throw new TypeError();
+        }
+        else if (typeof label !== "string") {
+            throw new TypeError();
+        }
+        else if (!Array.isArray(list)) {
+            throw new TypeError();
+        }
+        else if (list.some(_ => typeof _ !== "string")) {
+            throw new TypeError();
+        }
+        else if (!Numeric.isNumeric(defaultValueIndex)) {
+            throw new TypeError();
+        }
+
+        const dropdown = { id, type: "dropdown", label, list, defaultValueIndex };
+
+        this.#data.values.push(dropdown);
+
+        return this;
+    }
+
+    textField(id, label, placeHolder, defaultValue = "") {
+        if (typeof id !== "string") {
+            throw new TypeError();
+        }
+        else if (typeof label !== "string") {
+            throw new TypeError();
+        }
+        else if (typeof placeHolder !== "string") {
+            throw new TypeError();
+        }
+        else if (typeof defaultValue !== "string") {
+            throw new TypeError();
+        }
+
+        const textField = { id, type: "toggle", label, placeHolder, defaultValue };
+
+        this.#data.values.push(textField);
+
+        return this;
+    }
+
+    get cancelation() {
+        const that = this;
+
+        return {
+            on(value, callbackFn) {
+                if (typeof callbackFn !== "function") {
+                    throw new TypeError();
+                }
+
+                switch (value) {
+                    case "Any": {
+                        that.#data.cancelationCallbacks.Any.add(callbackFn);
+                        break;
+                    }
+                    case "UserBusy": {
+                        that.#data.cancelationCallbacks.UserBusy.add(callbackFn);
+                        break;
+                    }
+                    case "UserClosed": {
+                        that.#data.cancelationCallbacks.UserClosed.add(callbackFn);
+                        break;
+                    }
+                    default: throw new Error();
+                }
+
+                return that;
+            },
+            off(callbackFn) {
+                that.#data.cancelationCallbacks.Any.delete(callbackFn);
+                that.#data.cancelationCallbacks.UserBusy.delete(callbackFn);
+                that.#data.cancelationCallbacks.UserClosed.delete(callbackFn);
+
+                return that;
+            }
+        };
+    }
+
+    set cancelation(_) {
+        throw new Error();
+    }
+
+    onSubmit(callbackFn) {
+        if (typeof callbackFn !== "function") {
+            throw new TypeError();
+        }
+
+        this.#data.callbackFn = callbackFn;
+
+        return this;
+    }
+
+    show(player) {
+        if (!(player instanceof Player)) {
+            throw new TypeError();
+        }
+
+        if (this.#data.title === undefined) {
+            throw new Error("unset title");
+        }
+
+        const form = new ModalFormData()
+        .title(this.#data.title);
+
+        for (const value of this.#data.values) {
+            switch (value.type) {
+                case "toggle": {
+                    form.toggle(value.label, value.defaultValue);
+                    break;
+                }
+                case "slider": {
+                    form.slider(value.label, value.range.min, value.range.max, value.step, value.defaultValue);
+                    break;
+                }
+                case "dropdown": {
+                    form.dropdown(value.label, value.list, value.defaultValueIndex);
+                    break;
+                }
+                case "textField": {
+                    form.textField(value.label, value.placeHolder, value.defaultValue);
+                }
+            }
+        }
+
+        form.show(player).then(response => {
+            if (response.formValues === undefined) {
+                this.#data.cancelationCallbacks.Any.forEach(callbackFn => {
+                    callbackFn(player);
+                });
+
+                if (response.cancelationReason === "UserBusy") {
+                    this.#data.cancelationCallbacks.UserBusy.forEach(callbackFn => {
+                        callbackFn(player);
+                    });
+                }
+                else if (response.cancelationReason === "UserClosed") {
+                    this.#data.cancelationCallbacks.UserClosed.forEach(callbackFn => {
+                        callbackFn(player);
+                    });
+                }
+
+                return;
+            }
+
+            const that = this;
+
+            const input = {
+                get(id) {
+                    if (typeof id !== "string") {
+                        throw new TypeError();
+                    }
+
+                    const index = that.#data.values.findIndex(_ => _.id === id);
+                    if (index === -1) return undefined;
+
+                    const value = that.#data.values[index];
+
+                    return value.type === "dropdown" ? value.list[response.formValues[index]] : response.formValues[index];
+                },
+                getAll() {
+                    return response.formValues.map((formValue, index) => {
+                        const value = that.#data.values[index];
+                        return value.type === "dropdown" ? value.list[formValue] : formValue; 
+                    });
+                }
+            };
+
+            this.#data.callbackFn({ player, ...input });
+        });
+    }
+}
+
+export class MessageFormBuilder {
+    #data = {
+        title: "",
+        body: "",
+        button1: {
+            name: "",
+            callbackFn: () => undefined
+        },
+        button2: {
+            name: "",
+            callbackFn: () => undefined
+        },
+        cancelationCallbacks: {
+            "UserBusy": new Set(),
+            "UserClosed": new Set(),
+            "Any": new Set()
+        },
+        callbackFn: () => undefined
+    };
+
+    title(text) {
+        if (typeof text !== "string") {
+            throw new TypeError();
+        }
+
+        this.#data.title = text;
+
+        return this;
+    }
+
+    body(...text) {
+        if (!Array.isArray(text)) {
+            throw new TypeError();
+        }
+        else if (text.some(_ => typeof _ !== "string")) {
+            throw new TypeError();
+        }
+
+        this.#data.body = text.join("\n");
+
+        return this;
+    }
+
+    button1(name) {
+        if (typeof name !== "string") {
+            throw new TypeError();
+        }
+
+        this.#data.button1.name = name;
+
+        const that = this;
+
+        return {
+            on(callbackFn) {
+                if (typeof callbackFn !== "function") {
+                    throw new TypeError();
+                }
+
+                that.#data.button1.callbackFn = callbackFn;
+
+                return that;
+            },
+            get pass() {
+                return that;
+            }
+        };
+    }
+
+    button2(name) {
+        if (typeof name !== "string") {
+            throw new TypeError();
+        }
+
+        this.#data.button2.name = name;
+
+        const that = this;
+
+        return {
+            on(callbackFn) {
+                if (typeof callbackFn !== "function") {
+                    throw new TypeError();
+                }
+
+                that.#data.button2.callbackFn = callbackFn;
+
+                return that;
+            },
+            get pass() {
+                return that;
+            }
+        };
+    }
+
+    get cancelation() {
+        const that = this;
+
+        return {
+            on(value, callbackFn) {
+                if (typeof callbackFn !== "function") {
+                    throw new TypeError();
+                }
+
+                switch (value) {
+                    case "Any": {
+                        that.#data.cancelationCallbacks.Any.add(callbackFn);
+                        break;
+                    }
+                    case "UserBusy": {
+                        that.#data.cancelationCallbacks.UserBusy.add(callbackFn);
+                        break;
+                    }
+                    case "UserClosed": {
+                        that.#data.cancelationCallbacks.UserClosed.add(callbackFn);
+                        break;
+                    }
+                    default: throw new Error();
+                }
+
+                return that;
+            },
+            off(callbackFn) {
+                that.#data.cancelationCallbacks.Any.delete(callbackFn);
+                that.#data.cancelationCallbacks.UserBusy.delete(callbackFn);
+                that.#data.cancelationCallbacks.UserClosed.delete(callbackFn);
+
+                return that;
+            }
+        };
+    }
+
+    set cancelation(_) {
+        throw new Error();
+    }
+
+    show(player) {
+        if (!(player instanceof Player)) {
+            throw new TypeError();
+        }
+
+        if (this.#data.title === undefined) {
+            throw new Error("unset title");
+        }
+
+        const form = new MessageFormData()
+        .title(this.#data.title);
+
+        if (this.#data.body !== undefined) {
+            form.body(this.#data.body);
+        }
+
+        form.button1(this.#data.button1.name);
+        form.button2(this.#data.button2.name);
+
+        form.show(player).then(response => {
+            if (response.selection === undefined) {
+                this.#data.cancelationCallbacks.Any.forEach(callbackFn => {
+                    callbackFn(player);
+                });
+
+                if (response.cancelationReason === "UserBusy") {
+                    this.#data.cancelationCallbacks.UserBusy.forEach(callbackFn => {
+                        callbackFn(player);
+                    });
+                }
+                else if (response.cancelationReason === "UserClosed") {
+                    this.#data.cancelationCallbacks.UserClosed.forEach(callbackFn => {
+                        callbackFn(player);
+                    });
+                }
+
+                return;
+            }
+
+            if (response.selection === 0) {
+                this.#data.button1.callbackFn(player);
+                this.#data.callbackFn({ buttonName: this.#data.button1.name, player });
+            }
+            else {
+                this.#data.button2.callbackFn(player);
+                this.#data.callbackFn({ buttonName: this.#data.button2.name, player });
+            }
+        });
+    }
+
+    onPush(callbackFn) {
+        if (typeof callbackFn !== "function") {
+            throw new TypeError();
+        }
+
+        this.#data.callbackFn = callbackFn;
+
+        return this;
+    }
+}
