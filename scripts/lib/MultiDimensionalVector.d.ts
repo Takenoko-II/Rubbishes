@@ -368,7 +368,7 @@ export class MultiDimensionalVector {
      * 次元数を基に多次元ベクトルのインスタンスを作成します。
      * @param dimensionSize 次元の大きさ
      */
-    from(dimensionSize: number): MultiDimensionalVector;
+    static from(dimensionSize: number): MultiDimensionalVector;
 
     /**
      * constructorと等価です。    
