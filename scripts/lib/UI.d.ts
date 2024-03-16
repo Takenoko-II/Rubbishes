@@ -18,26 +18,26 @@ export class ActionFormBuilder {
     /**
      * フォームにボタンを追加します。
      * @param name ボタンの名前
-     * @param texture ボタンのアイコンのテクスチャパス
+     * @param iconPath ボタンのアイコンのテクスチャパス
      */
-    button(name: string, texture?: string): ActionFormButtonPushEventSignal;
+    button(name: string, iconPath?: string): ActionFormButtonPushEventSignal;
 
     /**
      * フォームが閉じたとき発火するイベント
      */
-    readonly cancelation: ActionFormCancelEvent;
-
-    /**
-     * フォームを表示します。
-     * @param player プレイヤー
-     */
-    show(player: Player): void;
+    readonly cancelation: ActionFormCancelEventSignal;
 
     /**
      * ボタンを押した際に発火するイベントのコールバックを登録します。
      * @param callbackFn コールバック関数
      */
     onPush(callbackFn: (player: ServerFormButtonPushEvent) => void): ActionFormBuilder;
+
+    /**
+     * フォームを表示します。
+     * @param player プレイヤー
+     */
+    show(player: Player): void;
 }
 
 interface ActionFormButtonPushEventSignal {
@@ -48,12 +48,18 @@ interface ActionFormButtonPushEventSignal {
     on(callbackFn: (player: Player) => void): ActionFormBuilder;
 
     /**
-     * pass!
+     * このボタンを押した際に呼び出されるコールバックをの登録を解除します。
+     * @param callbackFn コールバック関数
+     */
+    off(callbackFn: (player: Player) => void): ActionFormBuilder;
+
+    /**
+     * このボタンを押した際の処理の定義を通過します。
      */
     readonly pass: ActionFormBuilder;
 }
 
-interface ActionFormCancelEvent {
+interface ActionFormCancelEventSignal {
     /**
      * フォームが閉じられた際に呼び出されるコールバック関数を登録します。
      * @param value 閉じた要因
@@ -114,7 +120,7 @@ export class ModalFormBuilder {
     /**
      * フォームが閉じたとき発火するイベント
      */
-    readonly cancelation: ModalFormCancelEvent;
+    readonly cancelation: ModalFormCancelEventSignal;
 
     /**
      * フォームの入力が送信された際に発火するイベントのコールバックを登録します。
@@ -146,7 +152,7 @@ interface ModalFormSubmitEvent {
     getAll(): (string | boolean | number)[];
 }
 
-interface ModalFormCancelEvent {
+interface ModalFormCancelEventSignal {
     /**
      * フォームが閉じられた際に呼び出されるコールバック関数を登録します。
      * @param value 閉じた要因
@@ -177,47 +183,36 @@ export class MessageFormBuilder {
     /**
      * フォームにボタン1を追加します。
      * @param name ボタンの名前
+     * @param callbackFn コールバック関数
      */
-    button1(name: string): MessageFormButtonPushEventSignal;
+    button1(name: string, callbackFn?: (player: Player) => void): MessageFormBuilder;
 
     /**
      * フォームにボタン2を追加します。
      * @param name ボタンの名前
+     * @param callbackFn コールバック関数
      */
-    button2(name: string): MessageFormButtonPushEventSignal;
+    button2(name: string, callbackFn?: (player: Player) => void): MessageFormBuilder;
 
     /**
      * フォームが閉じたとき発火するイベント
      */
-    readonly cancelation: MessageFormCancelEvent;
-
-    /**
-     * フォームを表示します。
-     * @param player プレイヤー
-     */
-    show(player: Player): void;
+    readonly cancelation: MessageFormCancelEventSignal;
 
     /**
      * ボタンを押した際に発火するイベントのコールバックを登録します。
      * @param callbackFn コールバック関数
      */
     onPush(callbackFn: (player: ServerFormButtonPushEvent) => void): MessageFormBuilder;
-}
-
-interface MessageFormButtonPushEventSignal {
-    /**
-     * このボタンを押した際に呼び出されるコールバックを登録します。
-     * @param callbackFn コールバック関数
-     */
-    on(callbackFn: (player: Player) => void): MessageFormBuilder;
 
     /**
-     * pass!
+     * フォームを表示します。
+     * @param player プレイヤー
      */
-    readonly pass: MessageFormBuilder;
+    show(player: Player): void;
 }
 
-interface MessageFormCancelEvent {
+interface MessageFormCancelEventSignal {
     /**
      * フォームが閉じられた際に呼び出されるコールバック関数を登録します。
      * @param value 閉じた要因

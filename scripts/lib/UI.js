@@ -40,16 +40,16 @@ export class ActionFormBuilder {
         return this;
     }
 
-    button(name, texture) {
+    button(name, iconPath) {
         if (typeof name !== "string") {
             throw new TypeError();
         }
 
-        const button = { name };
+        const button = { name, callbacks: new Set() };
 
         this.#data.buttons.push(button);
 
-        if (typeof texture === "string") button.texture = texture;
+        if (typeof iconPath === "string") button.iconPath = iconPath;
 
         const that = this;
 
@@ -58,8 +58,20 @@ export class ActionFormBuilder {
                 if (typeof callbackFn !== "function") {
                     throw new TypeError();
                 }
+                else if (button.callbacks.has(callbackFn)) {
+                    throw new Error();
+                }
 
-                button.callbackFn = callbackFn;
+                button.callbacks.add(callbackFn);
+
+                return that;
+            },
+            off(callbackFn) {
+                if (typeof callbackFn !== "function") {
+                    throw new TypeError();
+                }
+
+                button.callbacks.delete(callbackFn);
 
                 return that;
             },
@@ -130,7 +142,7 @@ export class ActionFormBuilder {
         }
 
         for (const button of this.#data.buttons) {
-            form.button(button.name, button.texture);
+            form.button(button.name, button.iconPath);
         }
 
         form.show(player).then(response => {
@@ -155,8 +167,10 @@ export class ActionFormBuilder {
 
             const button = this.#data.buttons[response.selection];
 
-            if (button.callbackFn) {
-                button.callbackFn(player);
+            if (button.callbacks.size > 0) {
+                button.callbacks.forEach(callbackFn => {
+                    callbackFn(player);
+                });
             }
 
             this.#data.callbackFn({ buttonName: button.name, player });
@@ -423,11 +437,11 @@ export class MessageFormBuilder {
         body: "",
         button1: {
             name: "",
-            callbackFn: () => undefined
+            callbacks: new Set()
         },
         button2: {
             name: "",
-            callbackFn: () => undefined
+            callbacks: new Set()
         },
         cancelationCallbacks: {
             "UserBusy": new Set(),
@@ -460,54 +474,32 @@ export class MessageFormBuilder {
         return this;
     }
 
-    button1(name) {
+    button1(name, callbackFn) {
         if (typeof name !== "string") {
+            throw new TypeError();
+        }
+        else if (callbackFn !== undefined && typeof callbackFn !== "function") {
             throw new TypeError();
         }
 
         this.#data.button1.name = name;
+        if (callbackFn) this.#data.button1.callbacks.add(callbackFn);
 
-        const that = this;
-
-        return {
-            on(callbackFn) {
-                if (typeof callbackFn !== "function") {
-                    throw new TypeError();
-                }
-
-                that.#data.button1.callbackFn = callbackFn;
-
-                return that;
-            },
-            get pass() {
-                return that;
-            }
-        };
+        return this;
     }
 
-    button2(name) {
+    button2(name, callbackFn) {
         if (typeof name !== "string") {
+            throw new TypeError();
+        }
+        else if (callbackFn !== undefined && typeof callbackFn !== "function") {
             throw new TypeError();
         }
 
         this.#data.button2.name = name;
+        if (callbackFn) this.#data.button2.callbacks.add(callbackFn);
 
-        const that = this;
-
-        return {
-            on(callbackFn) {
-                if (typeof callbackFn !== "function") {
-                    throw new TypeError();
-                }
-
-                that.#data.button2.callbackFn = callbackFn;
-
-                return that;
-            },
-            get pass() {
-                return that;
-            }
-        };
+        return this;
     }
 
     get cancelation() {
@@ -591,11 +583,15 @@ export class MessageFormBuilder {
             }
 
             if (response.selection === 0) {
-                this.#data.button1.callbackFn(player);
+                this.#data.button1.callbacks.forEach(callbackFn => {
+                    callbackFn(player);
+                });
                 this.#data.callbackFn({ buttonName: this.#data.button1.name, player });
             }
             else {
-                this.#data.button2.callbackFn(player);
+                this.#data.button2.callbacks.forEach(callbackFn => {
+                    callbackFn(player);
+                });
                 this.#data.callbackFn({ buttonName: this.#data.button2.name, player });
             }
         });
