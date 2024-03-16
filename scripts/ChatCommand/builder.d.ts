@@ -93,6 +93,11 @@ interface ChatCommandDefinition {
      * 実行時に呼び出される関数
      */
     execute(arg: ChatCommandExecuteEvent): any;
+    
+    /**
+     * 凍結した定義オブジェクトを返します。
+     */
+    frozen(): ChatCommandDefinitionFrozen;
 }
 
 interface ChatCommandDefinitions {
@@ -100,7 +105,7 @@ interface ChatCommandDefinitions {
      * 特定のコマンドの情報を取得します。
      * @param name コマンド名
      */
-    get(name: string): ChatCommandDefinition;
+    get(name: string): ChatCommandDefinition | undefined;
 
     /**
      * 全てのコマンドの情報を取得します。
@@ -218,4 +223,31 @@ interface ChatCommandExecuteEvent {
      * コールバックの実行をキャンセルするか否か
      */
     cancel: boolean;
+}
+
+interface ChatCommandDefinitionFrozen {
+    /**
+     * コマンド名
+     */
+    readonly name: string;
+
+    /**
+     * 権限レベル
+     */
+    readonly permission: number;
+
+    /**
+     * 厳格モードであるか否か
+     */
+    readonly isStrict: boolean;
+
+    /**
+     * 引数
+     */
+    readonly parameters: ChatCommandParameterDefinition[];
+
+    /**
+     * 実行時に呼び出される関数
+     */
+    execute(arg: ChatCommandExecuteEvent): any;
 }

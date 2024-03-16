@@ -17,3 +17,14 @@ ChatCommandBuilder.register("@g")
 
     return player.getGameMode();
 });
+
+ChatCommandBuilder.register("@chat_command")
+.setPermissionLevel(1)
+.setStrictMode()
+.parameters.define("mode", { type: "string" })
+.onExecute(event => {
+    switch (event.parameters.get("mode")) {
+        case "list": return ChatCommandBuilder.commands.getAll().map(_ => _.frozen());
+        default: throw new Error();
+    }
+});

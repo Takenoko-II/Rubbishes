@@ -1,6 +1,6 @@
 import { Player, system, world } from "@minecraft/server";
 
-import { Numeric, Random, Tuple, utils } from "../lib/index";
+import { Numeric, Random, utils } from "../lib/index";
 
 const PRIVATE_CONSTRUCTOR_SYMBOL = Symbol();
 const TYPEERROR_SYMBOL = Symbol("Unexpected type parameter");
@@ -146,7 +146,12 @@ export class ChatCommandBuilder {
                 const isOptional = options.isOptional ?? false;
                 const defaultValue = options.defaultValue;
 
-                that.#internal.parameters.push({ id, type, isOptional, defaultValue });
+                that.#internal.parameters.push({
+                    id,
+                    type,
+                    isOptional,
+                    defaultValue
+                });
 
                 return that;
             }
@@ -374,7 +379,10 @@ export class ChatCommandBuilder {
                 throw new TypeError();
             }
 
-            return new ChatCommandDefinition(this.#registeredCommands.find(_ => _.name === name));
+            const definition = this.#registeredCommands.find(_ => _.name === name);
+
+            if (definition) return new ChatCommandDefinition(definition);
+            else return undefined;
         },
         getAll: () => {
             return this.#registeredCommands.map(_ => new ChatCommandDefinition(_));
@@ -470,6 +478,10 @@ class ChatCommandDefinition {
         }
 
         this.#definition.execute = value;
+    }
+
+    frozen() {
+        return Object.freeze(utils.deepCopy(this.#definition));
     }
 }
 

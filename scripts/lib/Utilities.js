@@ -100,7 +100,7 @@ export class Utilities {
             const result = Array.isArray(object) ? [] : {};
 
             for (const [key, value] of Object.entries(object)) {
-                result[key] = deepCopy(value);
+                result[key] = this.deepCopy(value);
             }
 
             return result;
