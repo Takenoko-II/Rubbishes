@@ -265,7 +265,7 @@ export class ModalFormBuilder {
         return this;
     }
 
-    textField(id, label, placeHolder, defaultValue = "") {
+    textField(id, label, placeHolder = "", defaultValue = "") {
         if (typeof id !== "string") {
             throw new TypeError();
         }
@@ -279,7 +279,7 @@ export class ModalFormBuilder {
             throw new TypeError();
         }
 
-        const textField = { id, type: "toggle", label, placeHolder, defaultValue };
+        const textField = { id, type: "textField", label, placeHolder, defaultValue };
 
         this.#data.values.push(textField);
 
