@@ -2,10 +2,10 @@ export class Utilities {
     /**
      * 渡された値を文字列に変換します。
      * @param data 任意の値
-     * @param prototype プロトタイプを表示するか否か
+     * @param getPrototype プロトタイプを表示するか否か
      * @param space スペースの文字数
      */
-    stringify(data: any, prototype?: boolean, space?: number): string;
+    stringify(data: any, getPrototype?: boolean, space?: number): string;
 
     /**
      * 値をシャローコピーして返します。
@@ -41,6 +41,14 @@ export class Utilities {
      * 値をディープコピーし、その中に格納されているすべての値を読み取り専用にして返します。
      */
     deepFreeze<T>(value: T): Readonly<T>;
+
+    /**
+     * 渡された値を文字列に変換します。
+     * @param data 任意の値
+     * @param getPrototype プロトタイプを表示するか否か
+     * @param space スペースの文字数
+     */
+    stringifyWithoutColor(data: any, getPrototype?: boolean, space?: number): string;
 }
 
 export const utils: Utilities;

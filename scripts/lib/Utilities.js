@@ -185,6 +185,92 @@ export class Utilities {
             return Object.freeze(result);
         }
     }
+
+    stringifyWithoutColor(data, getPrototype = false, space = 4) {
+        if (!Numeric.isNumeric(space)) {
+            throw new TypeError();
+        }
+        else if (typeof getPrototype !== "boolean") {
+            throw new TypeError();
+        }
+
+        return (function _(object, indentationCount) {
+            switch (typeof object) {
+                case "string": return "\"" + object + "\"";
+                case "function": {
+                    const code = String(object);
+
+                    if (code.startsWith("class")) {
+                        return "class " + object.name + " {...}";
+                    }
+                    else if (code.startsWith("async")) {
+                        return "async function " + object.name + "() {...}";
+                    }
+                    else return "function " + object.name + "() {...}";
+                }
+                case "symbol": return "Symbol(" + (object.description === undefined ? "" : "\"" + object.description + "\"") + ")";
+                case "object": {
+                    if (object === null) return "null";
+                    if (object instanceof Error) {
+                        let errorMessage = (object.message === "") ? "" : "\"" + object.message + "\"";
+                        return object.name + "(" + errorMessage + ")";
+                    }
+    
+                    let indentation = "";
+        
+                    for (let i = 0; i < indentationCount; i++) {
+                        indentation += " ".repeat(space);
+                    }
+        
+                    let result = (Array.isArray(object)) ? "[" : "{";
+
+                    let keyCount = 0;
+                    const keys = [];
+
+                    if (getPrototype === true) {
+                        for (const _ in object) {
+                            keyCount++;
+                            keys.push(_);
+                        }
+                    }
+                    else {
+                        for (const _ of Object.keys(object)) {
+                            keyCount++;
+                            keys.push(_);
+                        }
+                    }
+
+                    let i = 0;
+                    for (const key of keys) {
+                        i++;
+
+                        const value = object[key];
+
+                        result += "\n" + indentation;
+
+                        if (Array.isArray(object)) {
+                            result +=  _(value, indentationCount + 1);
+                        }
+                        else if (typeof value === "function") {
+                            if (value.name.startsWith("async")) {
+                                result += "async " + key + "() {...}";
+                            }
+                            else result += key + "() {...}";
+                        }
+                        else result += key + ": " + _(value, indentationCount + 1);
+
+                        if (i < keyCount) result += ",";
+                    }
+
+                    if (keyCount > 0) result += "\n" + indentation.slice(space);
+
+                    return result += Array.isArray(object) ? "]" : "}";
+                }
+                default:
+                    return String(object);
+            }
+        })(data, 1);
+    }
 }
 
 export const utils = new Utilities();
