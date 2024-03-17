@@ -208,7 +208,8 @@ export class ChatCommandBuilder {
         const playerPermissionLevel = executor.isOp() ? 1 : 0;
 
         if (command.permission > playerPermissionLevel) {
-            send(new Error("insufficient permission level"));
+            send(new Error("insufficient permission level detection: " + playerPermissionLevel.toString() + "(player) < " + String(command.permission) + "(command)"));
+            return true;
         }
 
         const registeredParameterList = command.parameters;
@@ -246,7 +247,7 @@ export class ChatCommandBuilder {
         for (const { id, isOptional, defaultValue } of registeredParameterList) {
             if (parameters.some(_ => _.id === id)) {
                 if (command.isStrict === true && parameters.find(_ => _.id === id).value === TYPEERROR_SYMBOL) {
-                    send(new TypeError("unexpected type parameter: strict-mode"));
+                    send(new TypeError("unexpected type parameter detection: by strict-mode"));
                     flags.fail = true;
                     return true;
                 }
@@ -254,7 +255,7 @@ export class ChatCommandBuilder {
             }
 
             if (isOptional === false) {
-                send(new TypeError("missing parameter: " + id));
+                send(new TypeError("missing parameter detection: " + id));
                 flags.fail = true;
                 return true;
             }
@@ -309,7 +310,7 @@ export class ChatCommandBuilder {
 
                         const parameter = parameters.find(_ => _.id === id);
                         if (!parameter) {
-                            throw new ReferenceError("unregistered parameter");
+                            throw new ReferenceError("unregistered parameter detection: " + id);
                         }
                         else return parameter.value;
                     },
@@ -359,7 +360,7 @@ export class ChatCommandBuilder {
                     const result = command.execute(data);
                     send(result);
                 }
-                else send(new Error("command execution was canceled"));
+                else send(new Error("canceled execution detection: ChatCommandExecuteEvent"));
             }
             catch (error) {
                 send(error);
@@ -481,7 +482,7 @@ class ChatCommandDefinition {
     }
 
     frozen() {
-        return Object.freeze(utils.deepCopy(this.#definition));
+        return utils.deepFreeze(this.#definition);
     }
 }
 

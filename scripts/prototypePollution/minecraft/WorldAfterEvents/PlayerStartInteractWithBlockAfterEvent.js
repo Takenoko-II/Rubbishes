@@ -44,7 +44,7 @@ export class PlayerStartInteractWithBlockAfterEventSignal {
             playerLastInteractedTimestamps.set(player, Date.now());
 
             if (Date.now() - lastInteracted > 100) {
-                callback(new PlayerStartInteractWithBlockAfterEvent(player, block, block, faceLocation, itemStack));
+                callback(new PlayerStartInteractWithBlockAfterEvent(player, block, blockFace, faceLocation, itemStack));
             }
         });
 

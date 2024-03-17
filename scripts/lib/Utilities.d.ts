@@ -36,6 +36,11 @@ export class Utilities {
      * この関数が実行された場所を返します。
      */
     here(): string;
+
+    /**
+     * 値をディープコピーし、その中に格納されているすべての値を読み取り専用にして返します。
+     */
+    deepFreeze<T>(value: T): Readonly<T>;
 }
 
 export const utils: Utilities;

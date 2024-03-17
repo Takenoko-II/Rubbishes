@@ -1,11 +1,11 @@
 import { Numeric } from "./Numeric.js";
 
 export class Utilities {
-    stringify(data, prototype = false, space = 4) {
+    stringify(data, getPrototype = false, space = 4) {
         if (!Numeric.isNumeric(space)) {
             throw new TypeError();
         }
-        else if (typeof prototype !== "boolean") {
+        else if (typeof getPrototype !== "boolean") {
             throw new TypeError();
         }
 
@@ -48,7 +48,7 @@ export class Utilities {
                     let keyCount = 0;
                     const keys = [];
 
-                    if (prototype === true) {
+                    if (getPrototype === true) {
                         for (const _ in object) {
                             keyCount++;
                             keys.push(_);
@@ -67,15 +67,37 @@ export class Utilities {
 
                         const value = object[key];
 
-                        if (typeof value === "object") {
-                            if (Array.isArray(object)) result += "\n" + indentation + _(value, indentationCount + 1);
-                            else result += "\n" + indentation + "§b" + key + "§b: " + _(value, indentationCount + 1);
+                        result += "\n" + indentation;
+
+                        if (Array.isArray(object)) {
+                            result +=  _(value, indentationCount + 1);
+                        }
+                        else if (typeof value === "function") {
+                            if (value.name.startsWith("class") || [Object, String, Number, Boolean, Array].includes(value)) {
+                                result += "§a" + key + "§r§f {§9...§f}";
+                            }
+                            else if (value.name.startsWith("async")) {
+                                result += "§9async §e" + key + "§r§f() {§q...§f}";
+                            }
+                            else result += "§e" + key + "§r§f() {§q...§f}";
                         }
                         else {
-                            if (Array.isArray(object)) result += "\n" + indentation + _(value);
-                            else result += "\n" + indentation + "§b" + key + "§b: " + _(value);
+                            let isReadonly = false;
+
+                            try {
+                                const previous = object[key];
+                                object[key] = 0;
+                                object[key] = previous;
+                            }
+                            catch (e) {
+                                if (e instanceof TypeError && e.message === `'${key}' is read-only`) {
+                                    isReadonly = true;
+                                }
+                            }
+
+                            result += "§" + (isReadonly ? "9" : "b") + key + "§f: " + _(value, indentationCount + 1);
                         }
-        
+
                         if (i < keyCount) result += ",";
                     }
 
@@ -149,6 +171,19 @@ export class Utilities {
     here() {
         const { stack } = new Error();
         return stack.replace(/\s+at here \(.+Utilities\.js:\d+\)\s+at /g, "").replace(/\n/g, "");
+    }
+
+    deepFreeze(object) {
+        if (typeof object !== "object" || object === null) return object;
+        else {
+            const result = Array.isArray(object) ? [] : {};
+
+            for (const [key, value] of Object.entries(object)) {
+                result[key] = Object.freeze(this.deepFreeze(value));
+            }
+
+            return Object.freeze(result);
+        }
     }
 }
 

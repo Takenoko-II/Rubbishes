@@ -1,6 +1,8 @@
 import { Player } from "@minecraft/server";
 
 export class ChatCommandBuilder {
+    private constructor();
+
     /**
      * 権限レベルを設定します。
      */
@@ -92,7 +94,7 @@ interface ChatCommandDefinition {
     /**
      * 実行時に呼び出される関数
      */
-    execute(arg: ChatCommandExecuteEvent): any;
+    execute(arg: ChatCommandOnExecuteInfo): any;
     
     /**
      * 凍結した定義オブジェクトを返します。
@@ -244,10 +246,32 @@ interface ChatCommandDefinitionFrozen {
     /**
      * 引数
      */
-    readonly parameters: ChatCommandParameterDefinition[];
+    readonly parameters: Readonly<ChatCommandParameterDefinitionFrozen[]>;
 
     /**
      * 実行時に呼び出される関数
      */
-    execute(arg: ChatCommandExecuteEvent): any;
+    execute(arg: ChatCommandOnExecuteInfo): any;
+}
+
+interface ChatCommandParameterDefinitionFrozen {
+    /**
+     * 引数のID
+     */
+    readonly id: string;
+
+    /**
+     * 引数の型
+     */
+    readonly type: "any" | "string" | "number" | "boolean" | "object" | "symbol" | "undefined";
+
+    /**
+     * 省略可能引数か否か
+     */
+    readonly isOptional: boolean;
+
+    /**
+     * デフォルト値
+     */
+    readonly defaultValue?: any;
 }
