@@ -1,5 +1,7 @@
 import { Player, ItemStack } from "@minecraft/server";
 
+import { MultiDimensionalVector } from "../../lib/index";
+
 Player.prototype.give = function(itemStack) {
     if (!(itemStack instanceof ItemStack)) {
         throw new TypeError();
