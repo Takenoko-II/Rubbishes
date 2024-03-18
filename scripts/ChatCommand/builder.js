@@ -26,7 +26,16 @@ function parseObject(object) {
     else return undefined;
 }
 
+/**
+ * @param {string} value 
+ * @param {string} type 
+ * @param {boolean} strict 
+ */
 function parse(value, type, strict = false) {
+    if (value.startsWith("\"") && value.endsWith("\"")) {
+        return value.slice(1, -1);
+    }
+
     switch (type) {
         case "string": return String(value);
         case "number": {
@@ -197,7 +206,7 @@ export class ChatCommandBuilder {
             throw new TypeError();
         }
 
-        const [commandName, ...parameterStringList] = utils.split(commandString, /\s+/g).filter(_ => _ !== "");
+        const [commandName, ...parameterStringList] = utils.split(commandString, /\s+/g, { deleteQuote: false }).filter(_ => _ !== "");
 
         const command = this.#registeredCommands.find(({ name }) => name === commandName);
 

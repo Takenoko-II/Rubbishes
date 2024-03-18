@@ -129,11 +129,21 @@ export class Utilities {
         }
     }
 
-    split(text, separator) {
+    split(text, separator, options = {}) {
         if (typeof text !== "string") {
             throw new TypeError();
         }
-    
+        else if (typeof options !== "object" || options === null || Array.isArray(options)) {
+            throw new TypeError();
+        }
+        else if (options.deleteQuote !== undefined && typeof options.deleteQuote !== "boolean") {
+            throw new TypeError();
+        }
+
+        if (options.deleteQuote === undefined) {
+            options.deleteQuote = true;
+        }
+
         const quoteRegExp = /("(.*?)(?<!\\)")|('(.*?)(?<!\\)')|(`(.*?)(?<!\\)`)/g;
         const id = "≵";
         let matching = text.match(quoteRegExp);
@@ -144,7 +154,12 @@ export class Utilities {
             .split(separator)
             .map(char => {
                 while (char.includes(id) && matching !== null) {
-                    char = char.replace(id, matching[0].slice(1, -1).replace(/\\"/g, "\""));
+                    if (options.deleteQuote === true) {
+                        char = char.replace(id, matching[0].slice(1, -1).replace(/\\"/g, "\""));
+                    }
+                    else {
+                        char = char.replace(id, matching[0].replace(/\\"/g, "\""));
+                    }
                     matching.shift();
                 }
                 return char;

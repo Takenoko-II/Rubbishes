@@ -23,8 +23,9 @@ export class Utilities {
      * 文字列をクォーテーションを考慮して区切り文字で分割します。
      * @param text 文字列
      * @param separator 区切り文字
+     * @param options オプション
      */
-    split(text: string, separator: string | RegExp): string[];
+    split(text: string, separator: string | RegExp, options: { deleteQuote?: boolean }): string[];
 
     /**
      * 値をコンテンツログに出力します。
