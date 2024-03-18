@@ -15,3 +15,5 @@ export * from "./CuboidArea.js";
 export * from "./Tuple.js";
 
 export * from "./UI.js";
+
+export * from "./LootTable.js";

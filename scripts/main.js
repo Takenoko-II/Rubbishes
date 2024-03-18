@@ -4,7 +4,7 @@ import "./commands";
 
 import { world, system, Player, Entity, EquipmentSlot, ItemStack } from "@minecraft/server";
 
-import { MultiDimensionalVector, utils } from "./lib/index";
+import { MultiDimensionalVector, Numeric, utils } from "./lib/index";
 
 import { ChatCommandBuilder } from "./ChatCommand/index";
 
@@ -179,4 +179,38 @@ system.runInterval(() => {
         }
         else playerIsNotOnGroundTimeMap.set(player, notOnGroundTime + 1);
     }
+});
+
+import { LootTable, Pool, Entry } from "./lib/index";
+
+const lootTable = new LootTable("hoge");
+
+const pool = new Pool(1);
+
+pool.entries.set([
+    new Entry(new ItemStack("apple", 1), 1),
+    new Entry(new ItemStack("stick", 1), 4)
+]);
+
+lootTable.pools.set([
+    pool
+]);
+
+const table2 = new LootTable("fuga");
+const pool2 = new Pool(1);
+pool2.entries.set([
+    new Entry(lootTable, 1),
+    new Entry(new ItemStack("command_block"), 1)
+]);
+table2.pools.add(pool2);
+
+ChatCommandBuilder.register("@loot")
+.parameters.define("count", { type: "number" })
+.onExecute(a => {
+    for (let i = 0; i < a.parameters.get("count"); i++) {
+        table2.roll().forEach(i => {
+            a.player.give(i);
+        });
+    }
+    return true;
 });
