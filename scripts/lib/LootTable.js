@@ -1,10 +1,11 @@
-import { ItemStack } from "@minecraft/server";
+import { Container, ItemStack } from "@minecraft/server";
 
 import { Numeric } from "./Numeric";
-import { utils } from "./Utilities";
+
+import { Random } from "./Random";
 
 export class Entry {
-    constructor(value = new ItemStack("minecraft:air"), weight) {
+    constructor(value = new ItemStack("minecraft:air"), weight = 1) {
         if (value instanceof ItemStack || value instanceof LootTable) {
             this.#internal.value = value;
         }
@@ -56,14 +57,20 @@ export class Entry {
 }
 
 export class Pool {
-    constructor(rolls) {
+    constructor(rolls = 1) {
         if (!Numeric.isNumeric(rolls)) throw TypeError();
         
         this.#internal.rolls = rolls;
     }
 
     #internal = {
+        /**
+         * @type {number}
+         */
         rolls: NaN,
+        /**
+         * @type {Entry[]}
+         */
         entries: []
     };
 
@@ -93,7 +100,7 @@ export class Pool {
                 that.#internal.entries = entries;
             },
             get() {
-                return [...that.#internal.entries];
+                return Object.freeze([...that.#internal.entries]);
             }
         };
     }
@@ -111,7 +118,13 @@ export class LootTable {
     }
 
     #internal = {
+        /**
+         * @type {string}
+         */
         id: "",
+        /**
+         * @type {Pool[]}
+         */
         pools: []
     };
 
@@ -137,6 +150,9 @@ export class LootTable {
                 if (pools.some(_ => !(_ instanceof Pool))) throw TypeError();
 
                 that.#internal.pools = pools;
+            },
+            get() {
+                return Object.freeze([...that.#internal.pools]);
             }
         };
     }
@@ -146,22 +162,30 @@ export class LootTable {
     }
 
     roll() {
+        /** @type {ItemStack[]} */
         const items = [];
 
         for (const pool of this.#internal.pools) {
             for (let i = 0; i < pool.rolls; i++) {
-                const list = [];
+                /** @type {Entry[]} */
+                const entries = [];
 
-                for (const [index, entry] of pool.entries.get().entries()) {
-                    list.push(...[...Array(entry.weight)].fill(index));
+                for (const entry of pool.entries.get()) {
+                    entries.push(...Array(entry.weight).fill(entry));
                 }
 
-                const index = Math.floor(Math.random() * list.length);
-                const item = pool.entries.get()[list[index]].get();
-                items.push(...item);
+                const index = Math.floor(Math.random() * entries.length);
+                items.push(...entries[index].get());
             }
         }
 
         return items;
+    }
+
+    /**
+     * @param {Container} container 
+     */
+    fill(container) {
+        const items = this.roll();
     }
 }

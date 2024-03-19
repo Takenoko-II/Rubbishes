@@ -27,7 +27,7 @@ export class Random extends NumberRange {
      * 渡されたオブジェクトからランダムな値を一つ選び出します。
      * @param 値
      */
-    static select(value: object | any[]): any;
+    static select<T>(value: object | T[]): T;
 
     /**
      * 1を100%として、渡された数値の確率でtrueを返します。    

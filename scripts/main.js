@@ -183,34 +183,21 @@ system.runInterval(() => {
 
 import { LootTable, Pool, Entry } from "./lib/index";
 
-const lootTable = new LootTable("hoge");
-
-const pool = new Pool(1);
-
+const pool = new Pool();
 pool.entries.set([
-    new Entry(new ItemStack("apple", 1), 1),
-    new Entry(new ItemStack("stick", 1), 4)
+    new Entry(new ItemStack("red_wool" ), 1),
+    new Entry(new ItemStack("blue_wool"), 2),
+    new Entry(new ItemStack("yellow_wool"), 3),
+    new Entry(new ItemStack("green_wool"), 4)
 ]);
 
-lootTable.pools.set([
-    pool
-]);
-
-const table2 = new LootTable("fuga");
-const pool2 = new Pool(1);
-pool2.entries.set([
-    new Entry(lootTable, 1),
-    new Entry(new ItemStack("command_block"), 1)
-]);
-table2.pools.add(pool2);
+const table = new LootTable("hoge");
+table.pools.add(pool);
 
 ChatCommandBuilder.register("@loot")
 .parameters.define("count", { type: "number" })
-.onExecute(a => {
-    for (let i = 0; i < a.parameters.get("count"); i++) {
-        table2.roll().forEach(i => {
-            a.player.give(i);
-        });
+.onExecute(({ player, parameters }) => {
+    for (let i = 0; i < parameters.get("count"); i++) {
+        table.roll().forEach(_ => player.give(_));
     }
-    return true;
 });

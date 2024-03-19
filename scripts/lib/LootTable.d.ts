@@ -6,7 +6,7 @@ class Entry {
      * @param value 値
      * @param weight 確率
      */
-    constructor(value: ItemStack | LootTable, weight: number);
+    constructor(value: ItemStack | LootTable, weight?: number);
 
     /**
      * 確率
@@ -29,7 +29,7 @@ class Pool {
      * プールを作成します。
      * @param rolls 回す回数
      */
-    constructor(rolls: number);
+    constructor(rolls?: number);
 
     /**
      * 回す回数
@@ -54,6 +54,11 @@ interface Entries {
      * @param entries エントリのリスト
      */
     set(entries: Entry[]): void;
+
+    /**
+     * 読み取り専用のエントリのリストを返します。
+     */
+    get(): readonly Entry[];
 }
 
 class LootTable {
@@ -66,7 +71,7 @@ class LootTable {
     /**
      * ID
      */
-    readonly id: string
+    readonly id: string;
 
     /**
      * プールのリスト
@@ -91,4 +96,9 @@ interface Pools {
      * @param pools プールのリスト
      */
     set(pools: Pool[]): void;
+
+    /**
+     * 読み取り専用のプールのリストを返します。
+     */
+    get(): readonly Pool[];
 }

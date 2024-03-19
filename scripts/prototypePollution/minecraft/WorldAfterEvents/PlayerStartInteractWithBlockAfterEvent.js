@@ -40,7 +40,7 @@ export class PlayerStartInteractWithBlockAfterEventSignal {
         callbacks.add(callback);
 
         world.afterEvents.playerInteractWithBlock.subscribe(({ player, block, blockFace, faceLocation, itemStack }) => {
-            const lastInteracted = playerLastInteractedTimestamps.get(player) ?? Date.now() - 101;
+            const lastInteracted = playerLastInteractedTimestamps.get(player) ?? 0;
             playerLastInteractedTimestamps.set(player, Date.now());
 
             if (Date.now() - lastInteracted > 100) {
