@@ -115,11 +115,11 @@ jewelriesTable.pools.add(jewelriesPool);
 
 const mainTable = new LootTable("main");
 
-const mainPool = new Pool();
+const mainPool = new Pool(3);
 
 mainPool.entries.set([
     new Entry(jewelriesTable),
-    new Entry(new ItemStack("cobblestone", 10), 1),
+    new Entry(new ItemStack("cobblestone", 10), 2),
     new Entry(new ItemStack("andesite", 10), 2),
     new Entry(new ItemStack("stone", 10), 2),
     new Entry(new ItemStack("gravel", 10), 2)
@@ -132,4 +132,3 @@ world.afterEvents.playerStartInteractWithBlock.subscribe(({ block }) => {
 
     mainTable.fill(block.getComponent("inventory").container);
 });
-

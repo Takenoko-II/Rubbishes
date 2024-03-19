@@ -21,18 +21,18 @@ class Entry {
     /**
      * このエントリが返すアイテムの配列
      */
-    get(): ItemStack[];
+    getItemStacks(): ItemStack[];
 }
 
 class Pool {
     /**
      * プールを作成します。
-     * @param rolls 回す回数
+     * @param rolls 抽選する回数
      */
     constructor(rolls?: number);
 
     /**
-     * 回す回数
+     * 抽選する回数
      */
     rolls: number;
 
@@ -50,7 +50,7 @@ interface Entries {
     add(entry: Entry): void;
 
     /**
-     * エントリのリストを設定します。
+     * エントリのリストを上書きします。
      * @param entries エントリのリスト
      */
     set(entries: Entry[]): void;
@@ -59,6 +59,12 @@ interface Entries {
      * 読み取り専用のエントリのリストを返します。
      */
     get(): readonly Entry[];
+
+    /**
+     * エントリを削除します。
+     * @param entry エントリ
+     */
+    delete(entry: Entry): void;
 }
 
 class LootTable {
@@ -88,6 +94,13 @@ class LootTable {
      * @param container コンテナ
      */
     fill(container: Container): Container;
+
+    /**
+     * jsonからルートテーブルを作成します。
+     * @param id ID
+     * @param json ルートテーブルのJSONテキストフォーマット
+     */
+    static create(id: string, json: LootTableJSONTextFormat): LootTable;
 }
 
 interface Pools {
@@ -98,7 +111,7 @@ interface Pools {
     add(pool: Pool): void;
 
     /**
-     * プールのリストを設定します。
+     * プールのリストを上書きします。
      * @param pools プールのリスト
      */
     set(pools: Pool[]): void;
@@ -107,4 +120,37 @@ interface Pools {
      * 読み取り専用のプールのリストを返します。
      */
     get(): readonly Pool[];
+
+    /**
+     * プールを削除します。
+     * @param pool プール
+     */
+    delete(pool: Pool): void;
+}
+
+interface LootTableJSONTextFormat {
+    /**
+     * プールのリスト
+     */
+    readonly pools: {
+        /**
+         * 抽選する回数
+         */
+        readonly rolls: number;
+
+        /**
+         * エントリのリスト
+         */
+        readonly entries: {
+            /**
+             * 確率
+             */
+            readonly weight: number;
+
+            /**
+             * 内容
+             */
+            readonly value: ItemStack | LootTable;
+        }[];
+    }[]
 }

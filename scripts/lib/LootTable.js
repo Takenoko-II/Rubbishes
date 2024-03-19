@@ -3,7 +3,6 @@ import { Block, Container, ItemStack } from "@minecraft/server";
 import { Numeric } from "./Numeric";
 
 import { Random } from "./Random";
-import { utils } from "./Utilities";
 
 export class Entry {
     constructor(value = new ItemStack("minecraft:air"), weight = 1) {
@@ -13,11 +12,12 @@ export class Entry {
         else throw TypeError();
 
         if (!Numeric.isNumeric(weight)) throw TypeError();
-        
+
         this.#internal.weight = weight;
     }
 
     #internal = {
+        id: "",
         value: new ItemStack("minecraft:air"),
         weight: NaN
     };
@@ -46,7 +46,7 @@ export class Entry {
         throw Error();
     }
 
-    get() {
+    getItemStacks() {
         if (this.#internal.value instanceof LootTable) {
             return this.#internal.value.roll();
         }
@@ -102,6 +102,11 @@ export class Pool {
             },
             get() {
                 return Object.freeze([...that.#internal.entries]);
+            },
+            delete(entry) {
+                if (!(entry instanceof Entry)) throw TypeError();
+
+                that.#internal.entries = that.#internal.entries.filter(_ => _ !== entry);
             }
         };
     }
@@ -154,6 +159,11 @@ export class LootTable {
             },
             get() {
                 return Object.freeze([...that.#internal.pools]);
+            },
+            delete(pool) {
+                if (!(pool instanceof Pool)) throw TypeError();
+
+                that.#internal.pools = that.#internal.pools.filter(_ => _ !== pool);
             }
         };
     }
@@ -176,7 +186,7 @@ export class LootTable {
                 }
 
                 const index = Math.floor(Math.random() * entries.length);
-                items.push(...entries[index].get().map(_ => _.clone()));
+                items.push(...entries[index].getItemStacks().map(_ => _.clone()));
             }
         }
 
@@ -205,9 +215,10 @@ export class LootTable {
                     items.splice(items.indexOf(item), 1);
                 }
                 else {
-                    item.amount = newAmount;
+                    item.amount = subtractAmount;
                     if (container.getSlot(slot).hasItem() && !container.getItem(slot).isStackableWith(item)) continue;
                     container.setItem(slot, item);
+                    item.amount = newAmount;
                 }
 
                 items = Random.shuffle(items);
@@ -217,5 +228,45 @@ export class LootTable {
         }
 
         return container;
+    }
+
+    /**
+     * @param {string} id
+     * @param {{ pools: { rolls: number; entries: { weight: number; value: ItemStack | LootTable }[]; }[]; }} json 
+     */
+    static create(id, json) {
+        if (typeof id !== "string") {
+            throw TypeError();
+        }
+        else if (typeof json !== "object" || json === null || Array.isArray(json)) {
+            throw TypeError();
+        }
+        
+        const keys = Object.keys(json);
+
+        if (!(keys.length === 1 && keys[0] === "pools" && Array.isArray(json.pools))) {
+            throw TypeError();
+        }
+        else if (json.pools.some(({ rolls, entries }) => !Numeric.isNumeric(rolls) || !Array.isArray(entries))) {
+            throw TypeError();
+        }
+        else if (json.pools.some(({ entries }) => entries.some(({ weight, value }) => !Numeric.isNumeric(weight) || !(value instanceof this || value instanceof ItemStack)))) {
+            throw TypeError();
+        }
+
+        const lootTable = new this(id);
+        const pools = json.pools.map(_ => {
+            const pool = new Pool(_.rolls);
+
+            const entries = _.entries.map(({ value, weight }) => new Entry(value, weight));
+
+            pool.entries.set(entries);
+
+            return pool;
+        });
+
+        lootTable.pools.set(pools);
+
+        return lootTable;
     }
 }
