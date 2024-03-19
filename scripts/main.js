@@ -2,101 +2,11 @@ import "./prototypePollution/index";
 
 import "./commands";
 
-import { world, system, Player, Entity, EquipmentSlot, ItemStack } from "@minecraft/server";
-
-import { MultiDimensionalVector, Numeric, utils } from "./lib/index";
+import { world, system, Player, EquipmentSlot, ItemStack, EnchantmentType, EnchantmentTypes } from "@minecraft/server";
 
 import { ChatCommandBuilder } from "./ChatCommand/index";
 
-/**
- * @type {Map<Entity, Player>}
- */
-const hookOwnerMap = new Map();
-
-/**
- * @param {Player} player 
- * @returns {boolean}
- */
-function isHoldingRrapplingHook(player) {
-    const selectedItem = player.getComponent("equippable").getEquipment(EquipmentSlot.Mainhand);
-
-    if (!selectedItem) return false;
-    if (selectedItem.getDynamicProperty("data") === "GrapplingHook") {
-        return true;
-    }
-    return false;
-}
-
-world.afterEvents.projectileHitBlock.subscribe(({ source, projectile, location, dimension }) => {
-    if (!(projectile.typeId === "minecraft:fishing_hook" && isHoldingRrapplingHook(source))) return;
-
-    hookOwnerMap.set(projectile, source);
-
-    dimension.spawnParticle("minecraft:critical_hit_emitter", MultiDimensionalVector.const("up").add(projectile.location));
-    
-    const handle = system.runInterval(() => {
-        if (!world.getEntity(projectile.id)) {
-            system.clearRun(handle);
-            return;
-        }
-        projectile.teleport(location);
-    });
-});
-
-world.beforeEvents.entityRemove.subscribe(({ removedEntity }) => {
-    const owner = hookOwnerMap.get(removedEntity);
-
-    if (!(removedEntity.typeId === "minecraft:fishing_hook" && owner instanceof Player)) return;
-
-    hookOwnerMap.delete(removedEntity);
-
-    if (!isHoldingRrapplingHook(owner)) return;
-
-    const location = new MultiDimensionalVector(removedEntity.location);
-    if (location.getDistanceTo(owner.location) >= 32) return;
-
-    const { x: vx, y: vy, z: vz } = owner.getVelocity();
-    const velocity = {
-        horizontal: Math.sqrt(Math.abs(vx) + Math.abs(vz)) * 0.25,
-        vertical: Math.sqrt(Math.abs(vx) + Math.abs(vz)) * 0.25 + vy * 0.25
-    };
-
-    const { x: dx, y: dy, z: dz } = location.subtract(owner.location);
-    const sign = (location.y >= owner.location.y) ? 1 : -1;
-    const strength = {
-        horizontal: Math.sqrt(Math.abs(dx) + Math.abs(dz)),
-        vertical: (dy === 0) ? 0.3 : Math.sqrt(Math.abs(dy) * 0.175) * sign
-    }
-
-    system.runTimeout(() => {
-        owner.applyKnockback(dx, dz, strength.horizontal + velocity.horizontal, strength.vertical + velocity.vertical);
-        owner.playSound( "open.iron_door", { volume: 10, pitch: 0.75 } );
-        owner.dimension.spawnParticle("minecraft:critical_hit_emitter", location.add({ x: 0, y: 1, z: 0 }));
-    });
-
-    let t = 0;
-    const handle = system.runInterval(() => {
-        owner.addEffect("slow_falling", 1, { showParticles: false });
-
-        if (owner.isOnGround && t > 0) system.clearRun(handle);
-        if (t === 0) t++;
-    });
-});
-
-world.afterEvents.itemUse.subscribe(({ source }) => {
-    if (!isHoldingRrapplingHook(source)) return;
-
-    source.playSound("random.door_open", { volume: 10, pitch: 2 });
-});
-
-function getGrapplingHook() {
-    const grapplingHook = new ItemStack("minecraft:fishing_rod");
-
-    grapplingHook.nameTag = "§r§6Grappling Hook";
-    grapplingHook.setDynamicProperty("data", "GrapplingHook");
-
-    return grapplingHook;
-}
+import { getGrapplingHook } from "./GrapplingHook"
 
 function getFeatherLeggings() {
     const featherLeggings = new ItemStack("minecraft:iron_leggings");
@@ -183,12 +93,25 @@ system.runInterval(() => {
 
 import { LootTable, Pool, Entry } from "./lib/index";
 
-const pool = new Pool();
+const grapplingHook = getGrapplingHook();
+grapplingHook.getComponent("enchantable").addEnchantment({ type: EnchantmentTypes.get("unbreaking"), level: 3 })
+const featherLegs = getFeatherLeggings();
+
+const pool = new Pool(7);
 pool.entries.set([
-    new Entry(new ItemStack("red_wool" ), 1),
-    new Entry(new ItemStack("blue_wool"), 2),
-    new Entry(new ItemStack("yellow_wool"), 3),
-    new Entry(new ItemStack("green_wool"), 4)
+    new Entry(new ItemStack("emerald", 10), 1),
+    new Entry(new ItemStack("diamond", 10), 2),
+    new Entry(new ItemStack("gold_ingot", 10), 3),
+    new Entry(new ItemStack("amethyst_shard", 10), 3),
+    new Entry(new ItemStack("redstone", 10), 4),
+    new Entry(new ItemStack("lapis_lazuli", 10), 4),
+    new Entry(new ItemStack("iron_ingot", 10), 4),
+    new Entry(new ItemStack("coal", 10), 5),
+    new Entry(grapplingHook, 2),
+    new Entry(featherLegs, 2),
+    new Entry(new ItemStack("golden_helmet"), 2),
+    new Entry(new ItemStack("diamond_chestplate"), 2),
+    new Entry(new ItemStack("chainmail_boots"), 2)
 ]);
 
 const table = new LootTable("hoge");
@@ -200,4 +123,9 @@ ChatCommandBuilder.register("@loot")
     for (let i = 0; i < parameters.get("count"); i++) {
         table.roll().forEach(_ => player.give(_));
     }
+});
+
+world.afterEvents.playerStartInteractWithBlock.subscribe(({ block }) => {
+    if (block.type.id !== "minecraft:chest") return;
+    table.fill(block.getComponent("inventory").container);
 });

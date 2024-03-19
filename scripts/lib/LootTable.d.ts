@@ -1,4 +1,4 @@
-import { ItemStack } from "@minecraft/server";
+import { Container, ItemStack } from "@minecraft/server";
 
 class Entry {
     /**
@@ -82,6 +82,12 @@ class LootTable {
      * ルートテーブルから抽選します。
      */
     roll(): ItemStack[];
+
+    /**
+     * コンテナをこのルートテーブルの内容で満たします。
+     * @param container コンテナ
+     */
+    fill(container: Container): Container;
 }
 
 interface Pools {

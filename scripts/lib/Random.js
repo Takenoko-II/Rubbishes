@@ -26,7 +26,9 @@ export class Random extends NumberRange {
             throw new TypeError("Unexpected type passed to function argument[0].");
         }
 
-        const clone = utils.shallowCopy(array);
+        if (array.length === 1) return array;
+
+        const clone = [...array];
         for (let i = clone.length - 1; i >= 0; i--) {
             const current = clone[i];
             const random = Math.floor(Math.random() * (i + 1));

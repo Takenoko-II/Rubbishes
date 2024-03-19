@@ -113,6 +113,7 @@ export class Utilities {
 
     shallowCopy(object) {
         if (typeof object !== "object" || object === null) return object;
+        else if (Array.isArray(object)) return [...object];
         else return Object.assign({}, object);
     }
     

@@ -1,8 +1,9 @@
-import { Container, ItemStack } from "@minecraft/server";
+import { Block, Container, ItemStack } from "@minecraft/server";
 
 import { Numeric } from "./Numeric";
 
 import { Random } from "./Random";
+import { utils } from "./Utilities";
 
 export class Entry {
     constructor(value = new ItemStack("minecraft:air"), weight = 1) {
@@ -175,7 +176,7 @@ export class LootTable {
                 }
 
                 const index = Math.floor(Math.random() * entries.length);
-                items.push(...entries[index].get());
+                items.push(...entries[index].get().map(_ => _.clone()));
             }
         }
 
@@ -183,9 +184,38 @@ export class LootTable {
     }
 
     /**
-     * @param {Container} container 
+     * @param {Container} container
      */
     fill(container) {
-        const items = this.roll();
+        let items = Random.shuffle(this.roll());
+
+        container.clearAll();
+
+        const slots = Random.shuffle([...Array(container.size).keys()]);
+
+        while (items.length > 0) {
+            for (const slot of slots) {
+                if (Random.chance(0.75) || items.length <= 0) continue;
+                const item = items[0];
+                const subtractAmount = new Random(1, item.amount).generate();
+                const newAmount = item.amount - subtractAmount;
+                if (newAmount <= 0) {
+                    if (container.getSlot(slot).hasItem() && !container.getItem(slot).isStackableWith(item)) continue;
+                    container.setItem(slot, item);
+                    items.splice(items.indexOf(item), 1);
+                }
+                else {
+                    item.amount = newAmount;
+                    if (container.getSlot(slot).hasItem() && !container.getItem(slot).isStackableWith(item)) continue;
+                    container.setItem(slot, item);
+                }
+
+                items = Random.shuffle(items);
+            }
+
+            if (container.emptySlotsCount === 0) break;
+        }
+
+        return container;
     }
 }
