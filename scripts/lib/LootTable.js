@@ -1,8 +1,10 @@
-import { Block, Container, ItemStack } from "@minecraft/server";
+import { Block, Container, Dimension, ItemStack, Player } from "@minecraft/server";
 
 import { Numeric } from "./Numeric";
 
 import { Random } from "./Random";
+
+import { MultiDimensionalVector } from "./MultiDimensionalVector";
 
 export class Entry {
     constructor(value = new ItemStack("minecraft:air"), weight = 1) {
@@ -197,6 +199,10 @@ export class LootTable {
      * @param {Container} container
      */
     fill(container) {
+        if (!(container instanceof Container)) {
+            throw TypeError();
+        }
+
         let items = Random.shuffle(this.roll());
 
         container.clearAll();
@@ -228,6 +234,26 @@ export class LootTable {
         }
 
         return container;
+    }
+
+    /**
+     * @param {Dimension} dimension 
+     * @param {import("@minecraft/server").Vector3} location 
+     */
+    spawn(dimension, location) {
+        if (!(dimension instanceof Dimension && MultiDimensionalVector.isVector3(location))) {
+            throw TypeError();
+        }
+
+        for (const item of this.roll()) {
+            const entity = dimension.spawnItem(item, location);
+
+            const x = new Random(-180, 179).generate();
+            const y = new Random(-90, -30).generate();
+            const vec = MultiDimensionalVector.getDirectionFromRotation({ x, y });
+
+            entity.applyImpulse(vec.multiply(0.05));
+        }
     }
 
     /**

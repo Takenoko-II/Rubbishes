@@ -1,4 +1,4 @@
-import { Container, ItemStack } from "@minecraft/server";
+import { Container, Dimension, ItemStack, Player, Vector3 } from "@minecraft/server";
 
 class Entry {
     /**
@@ -90,10 +90,17 @@ class LootTable {
     roll(): ItemStack[];
 
     /**
-     * コンテナをこのルートテーブルの内容で満たします。
+     * コンテナをこのルートテーブルから抽選したアイテムで満たします。
      * @param container コンテナ
      */
     fill(container: Container): Container;
+
+    /**
+     * 指定した場所にこのルートテーブルから抽選したアイテムのエンティティを召喚します。
+     * @param dimension ディメンション
+     * @param location 座標
+     */
+    spawn(dimension: Dimension, location: Vector3): void;
 
     /**
      * jsonからルートテーブルを作成します。
@@ -101,6 +108,8 @@ class LootTable {
      * @param json ルートテーブルのJSONテキストフォーマット
      */
     static create(id: string, json: LootTableJSONTextFormat): LootTable;
+
+    static readonly prototype;
 }
 
 interface Pools {
