@@ -56,8 +56,8 @@ world.beforeEvents.entityRemove.subscribe(({ removedEntity }) => {
     const { x: dx, y: dy, z: dz } = location.subtract(owner.location);
     const sign = (location.y >= owner.location.y) ? 1 : -1;
     const strength = {
-        horizontal: Math.sqrt(Math.abs(dx) + Math.abs(dz)) * 1.2,
-        vertical: (dy === 0) ? 0.3 : Math.sqrt(Math.abs(dy) * 0.22) * sign
+        horizontal: Math.sqrt(Math.abs(dx) + Math.abs(dz)) * 1 /*1.2*/,
+        vertical: (dy === 0) ? 0.3 : Math.sqrt(Math.abs(dy) * 0.175 /*0.22*/) * sign
     }
 
     system.runTimeout(() => {

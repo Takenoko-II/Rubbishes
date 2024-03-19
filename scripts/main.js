@@ -91,14 +91,16 @@ system.runInterval(() => {
     }
 });
 
+
+
+
 import { LootTable, Pool, Entry } from "./lib/index";
 
-const grapplingHook = getGrapplingHook();
-grapplingHook.getComponent("enchantable").addEnchantment({ type: EnchantmentTypes.get("unbreaking"), level: 3 })
-const featherLegs = getFeatherLeggings();
+const jewelriesTable = new LootTable("jewel");
 
-const pool = new Pool(7);
-pool.entries.set([
+const jewelriesPool = new Pool(5);
+
+jewelriesPool.entries.set([
     new Entry(new ItemStack("emerald", 10), 1),
     new Entry(new ItemStack("diamond", 10), 2),
     new Entry(new ItemStack("gold_ingot", 10), 3),
@@ -106,26 +108,28 @@ pool.entries.set([
     new Entry(new ItemStack("redstone", 10), 4),
     new Entry(new ItemStack("lapis_lazuli", 10), 4),
     new Entry(new ItemStack("iron_ingot", 10), 4),
-    new Entry(new ItemStack("coal", 10), 5),
-    new Entry(grapplingHook, 2),
-    new Entry(featherLegs, 2),
-    new Entry(new ItemStack("golden_helmet"), 2),
-    new Entry(new ItemStack("diamond_chestplate"), 2),
-    new Entry(new ItemStack("chainmail_boots"), 2)
+    new Entry(new ItemStack("coal", 10), 5)
 ]);
 
-const table = new LootTable("hoge");
-table.pools.add(pool);
+jewelriesTable.pools.add(jewelriesPool);
 
-ChatCommandBuilder.register("@loot")
-.parameters.define("count", { type: "number" })
-.onExecute(({ player, parameters }) => {
-    for (let i = 0; i < parameters.get("count"); i++) {
-        table.roll().forEach(_ => player.give(_));
-    }
-});
+const mainTable = new LootTable("main");
+
+const mainPool = new Pool();
+
+mainPool.entries.set([
+    new Entry(jewelriesTable),
+    new Entry(new ItemStack("cobblestone", 10), 1),
+    new Entry(new ItemStack("andesite", 10), 2),
+    new Entry(new ItemStack("stone", 10), 2),
+    new Entry(new ItemStack("gravel", 10), 2)
+]);
+
+mainTable.pools.add(mainPool);
 
 world.afterEvents.playerStartInteractWithBlock.subscribe(({ block }) => {
     if (block.type.id !== "minecraft:chest") return;
-    table.fill(block.getComponent("inventory").container);
+
+    mainTable.fill(block.getComponent("inventory").container);
 });
+
