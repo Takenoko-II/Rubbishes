@@ -1,4 +1,4 @@
-import { Block, Container, Dimension, EnchantmentTypes, ItemStack, Player } from "@minecraft/server";
+import { Block, Container, Dimension, EnchantmentType, EnchantmentTypes, ItemStack, Player } from "@minecraft/server";
 
 import { Numeric } from "./Numeric";
 
@@ -7,11 +7,16 @@ import { Random } from "./Random";
 import { MultiDimensionalVector } from "./MultiDimensionalVector";
 
 import { NumberRange } from "./NumberRange";
+import { EnchantmentTypeIdentifierList } from "../enum/EnchantmentTypeIdentifierList";
+import { utils } from "./Utilities";
 
 export class Entry {
     constructor(value = new ItemStack("minecraft:air"), weight = 1) {
         if (value instanceof ItemStack || value instanceof LootTable) {
             this.#internal.value = value;
+        }
+        else if (value === "empty") {
+            this.#internal.value = new ItemStack("air");
         }
         else if (typeof value === "string") {
             this.#internal.value = new ItemStack(value);
@@ -47,7 +52,7 @@ export class Entry {
             return "loot_table";
         }
         else if (this.#internal.value instanceof ItemStack) {
-            if (this.#internal.value.type.id === "") return "empty";
+            if (this.#internal.value.type.id === "minecraft:air") return "empty";
             else return "item";
         }
     }
@@ -181,6 +186,29 @@ export class Entry {
                             }
                         });
         
+                        return that;
+                    },
+                    random() {
+                        that.#internal.functions.push(clone => {
+                            const identifiers = EnchantmentTypeIdentifierList.slice(0).filter(id => {
+                                return clone.getComponent("enchantable").canAddEnchantment({
+                                    type: EnchantmentTypes.get(id),
+                                    level: 1
+                                });
+                            });
+
+                            const enchantmentIds = Random.shuffle(identifiers).slice(0, new Random(1, identifiers.length - 1).generate());
+
+                            for (const enchantmentId of enchantmentIds) {
+                                const type = EnchantmentTypes.get(enchantmentId);
+                                const level = new Random(1, type.maxLevel).generate();
+
+                                clone.getComponent("enchantable").removeEnchantment(type);
+                                utils.out(type.id, level, clone.getComponent("enchantable").canAddEnchantment({type,level}));
+                                clone.getComponent("enchantable").addEnchantment({ type, level });
+                            }
+                        });
+
                         return that;
                     }
                 };

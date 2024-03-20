@@ -2,7 +2,7 @@ import "./prototypePollution/index";
 
 import "./commands";
 
-import { world, system, Player, EquipmentSlot, ItemStack } from "@minecraft/server";
+import { world, system, Player, EquipmentSlot, ItemStack, EnchantmentType, EnchantmentTypes } from "@minecraft/server";
 
 import { ChatCommandBuilder } from "./ChatCommand/index";
 
@@ -126,16 +126,7 @@ mainPool.entries.set([
     new Entry(new ItemStack("gravel", 10), 2),
     new Entry("wooden_sword", 5)
     .functions.damage({ min: 0, max: 64 })
-    .functions.enchantments.set([
-        {
-            "id": "smite",
-            "level": 4
-        },
-        {
-            "id": "unbreaking",
-            "level": 2
-        }
-    ])
+    .functions.enchantments.random()
 ]);
 
 mainTable.pools.add(mainPool);
@@ -145,3 +136,11 @@ world.afterEvents.playerStartInteractWithBlock.subscribe(({ block }) => {
 
     mainTable.fill(block.getComponent("inventory").container);
 });
+
+const s = new ItemStack("wooden_sword").clone();
+
+const type = EnchantmentTypes.get("sharpness");
+const level = type.maxLevel;
+
+s.getComponent("enchantable").removeEnchantment(type);
+s.getComponent("enchantable").addEnchantment({ type, level });

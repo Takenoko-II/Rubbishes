@@ -1,12 +1,14 @@
 import { Container, Dimension, ItemStack, Vector3 } from "@minecraft/server";
 
+import { EnchantmentTypeIdentifierList } from "../enum/EnchantmentTypeIdentifierList";
+
 class Entry {
     /**
      * エントリを作成します。
      * @param value 値
      * @param weight 確率
      */
-    constructor(value: string | ItemStack | LootTable, weight?: number);
+    constructor(value?: string | ItemStack | LootTable, weight?: number);
 
     /**
      * 確率
@@ -114,13 +116,19 @@ interface EnchantmentsModifier {
      * @param enchantments エンチャントのリスト
      */
     set(enchantments: EnchantmentEntry[]): Entry;
+
+    /**
+     * アイテムのエンチャントを完全にランダムで設定します。
+     * @deprecated
+     */
+    random(): Entry;
 }
 
 interface EnchantmentEntry {
     /**
      * エンチャントのID
      */
-    id: string;
+    id: EnchantmentTypeIdentifierList[number];
 
     /**
      * エンチャントのレベル
