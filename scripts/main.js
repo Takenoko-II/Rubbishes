@@ -2,7 +2,7 @@ import "./prototypePollution/index";
 
 import "./commands";
 
-import { world, system, Player, EquipmentSlot, ItemStack, EnchantmentType, EnchantmentTypes } from "@minecraft/server";
+import { world, system, Player, EquipmentSlot, ItemStack } from "@minecraft/server";
 
 import { ChatCommandBuilder } from "./ChatCommand/index";
 
