@@ -28,6 +28,10 @@ export class PlayerStartInteractWithBlockAfterEventSignal {
      * @returns {(arg: PlayerStartInteractWithBlockAfterEvent) => void}
      */
     subscribe(callback) {
+        if (typeof callback !== "function") {
+            throw TypeError();
+        }
+
         /**
          * @type {Map<Player, number>}
          */
