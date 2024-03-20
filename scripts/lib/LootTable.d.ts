@@ -1,4 +1,4 @@
-import { Container, Dimension, ItemStack, Player, Vector3 } from "@minecraft/server";
+import { Container, Dimension, ItemStack, Vector3 } from "@minecraft/server";
 
 class Entry {
     /**
@@ -6,12 +6,17 @@ class Entry {
      * @param value 値
      * @param weight 確率
      */
-    constructor(value: ItemStack | LootTable, weight?: number);
+    constructor(value: string | ItemStack | LootTable, weight?: number);
 
     /**
      * 確率
      */
     weight: number;
+
+    /**
+     * 関数
+     */
+    readonly functions: EntryModifier;
 
     /**
      * エントリタイプ
@@ -22,6 +27,105 @@ class Entry {
      * このエントリが返すアイテムの配列
      */
     getItemStacks(): ItemStack[];
+}
+
+interface NumberRange {
+    /**
+     * 最小値
+     */
+    min: number;
+
+    /**
+     * 最大値
+     */
+    max: number;
+}
+
+interface EntryModifier {
+    /**
+     * アイテムの個数を設定します。
+     * @param value 個数
+     */
+    count(value: number): Entry;
+
+    /**
+     * アイテムの個数を渡された範囲からランダムに設定します。
+     * @param range 個数の範囲
+     */
+    count(range: NumberRange): Entry;
+
+    /**
+     * アイテムの残り耐久値を設定します。
+     * @param value 耐久値
+     */
+    damage(value: number): Entry;
+
+    /**
+     * アイテムの残り耐久値を渡された範囲からランダムに設定します。
+     * @param range 耐久値の範囲
+     */
+    damage(range: NumberRange): Entry;
+
+    /**
+     * エンチャントの設定
+     */
+    readonly enchantments: EnchantmentsModifier;
+
+    /**
+     * アイテムの名前を設定します。
+     * @param text アイテムの名前
+     */
+    name(text: string): Entry;
+
+    /**
+     * アイテムの説明文を設定します。
+     * @param list 説明文
+     */
+    lore(list: string[]): Entry;
+
+    /**
+     * このエントリが選ばれるときに実行される関数を設定します。
+     * @param callbackFn コールバック関数
+     */
+    script(callbackFn: (itemStack: ItemStack) => void): Entry;
+}
+
+interface EnchantmentsModifier {
+    /**
+     * アイテムのエンチャントを追加します。
+     * @param enchantment エンチャント
+     */
+    add(enchantment: EnchantmentEntry): Entry;
+
+    /**
+     * アイテムのエンチャントを渡されたリストからランダムに選んで追加します。
+     * @param enchantments エンチャントのリスト
+     */
+    add(enchantments: EnchantmentEntry[]): Entry;
+
+    /**
+     * アイテムのエンチャントを設定します。
+     * @param enchantment エンチャント
+     */
+    set(enchantment: EnchantmentEntry): Entry;
+
+    /**
+     * アイテムのエンチャントを渡されたリストで設定します。
+     * @param enchantments エンチャントのリスト
+     */
+    set(enchantments: EnchantmentEntry[]): Entry;
+}
+
+interface EnchantmentEntry {
+    /**
+     * エンチャントのID
+     */
+    id: string;
+
+    /**
+     * エンチャントのレベル
+     */
+    level: number | NumberRange;
 }
 
 class Pool {

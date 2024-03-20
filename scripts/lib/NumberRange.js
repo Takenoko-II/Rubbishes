@@ -34,4 +34,15 @@ export class NumberRange {
         else if (value > this.max) return this.max;
         else return value;
     }
+
+    static isNumberRange(value) {
+        if (typeof value !== "object" && value === null || Array.isArray(value)) {
+            return false;
+        }
+        else if (!(Numeric.isNumeric(value.min) && Numeric.isNumeric(value.max) && Object.keys(value).length === 2)) {
+            return false;
+        }
+    
+        return true;
+    }
 }

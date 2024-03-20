@@ -1,4 +1,4 @@
-import { Block, Container, Dimension, ItemStack, Player } from "@minecraft/server";
+import { Block, Container, Dimension, EnchantmentTypes, ItemStack, Player } from "@minecraft/server";
 
 import { Numeric } from "./Numeric";
 
@@ -6,10 +6,15 @@ import { Random } from "./Random";
 
 import { MultiDimensionalVector } from "./MultiDimensionalVector";
 
+import { NumberRange } from "./NumberRange";
+
 export class Entry {
     constructor(value = new ItemStack("minecraft:air"), weight = 1) {
         if (value instanceof ItemStack || value instanceof LootTable) {
             this.#internal.value = value;
+        }
+        else if (typeof value === "string") {
+            this.#internal.value = new ItemStack(value);
         }
         else throw TypeError();
 
@@ -18,10 +23,13 @@ export class Entry {
         this.#internal.weight = weight;
     }
 
+    /**
+     * @type {{ value: ItemStack | LootTable; weight: number; functions: ((clone: ItemStack) => void)[] }}
+     */
     #internal = {
-        id: "",
         value: new ItemStack("minecraft:air"),
-        weight: NaN
+        weight: NaN,
+        functions: []
     };
 
     get weight() {
@@ -48,12 +56,189 @@ export class Entry {
         throw Error();
     }
 
+    get functions() {
+        const that = this;
+
+        if (this.type !== "item") throw Error();
+
+        /**
+         * @param {unknown} value 
+         * @param {(itemStack: ItemStack) => { min: number; max: number; }} strict
+         * @returns {Random}
+         */
+        function common(value, strict) {
+            let range;
+
+            if (NumberRange.isNumberRange(value)) {
+                range = value;
+            }
+            else if (Numeric.isNumeric(value)) {
+                range = { min: value, max: value }
+            }
+            else throw TypeError();
+
+            range.min = Math.max(range.min, strict(that.#internal.value).min);
+            range.max = Math.min(range.max, strict(that.#internal.value).max);
+
+            return new Random(range.min, range.max);
+        }
+
+        return {
+            count(value) {
+                const random = common(value, itemStack => ({
+                    min: 1,
+                    max: itemStack.maxAmount
+                }));
+
+                that.#internal.functions.push((clone) => {
+                    clone.amount = random.generate();
+                });
+
+                return that;
+            },
+            damage(value) {
+                const random = common(value, itemStack => ({
+                    min: 0,
+                    max: itemStack.getComponent("durability").maxDurability
+                }));
+
+                that.#internal.functions.push((clone) => {
+                    clone.getComponent("durability").damage = random.generate();
+                });
+
+                return that;
+            },
+            get enchantments() {
+                function isEnchantmentEntry(_) {
+                    if (typeof _ !== "object" || Array.isArray(_) || _ === null) {
+                        return false;
+                    }
+                    else if (!(typeof _.id === "string" && (NumberRange.isNumberRange(_.level) || Numeric.isNumeric(_.level)))) {
+                        return false;
+                    }
+                    else return true;
+                }
+        
+                function isArrayOfEnchantmentEntry(_) {
+                    if (!Array.isArray(_)) return false;
+                    else if (_.some(_ => !isEnchantmentEntry(_))) return false;
+                    else return true;
+                }
+
+                return {
+                    add(value) {        
+                        if (!isEnchantmentEntry(value) && !isArrayOfEnchantmentEntry(value)) {
+                            throw TypeError();
+                        }
+        
+                        that.#internal.functions.push((clone) => {
+                            /**
+                             * @type {{ id: string; level: number | { min: number; max: number; } }}
+                             */
+                            const enchantment = isArrayOfEnchantmentEntry(value) ? Random.select(value) : value;
+        
+                            const enchantmentType = EnchantmentTypes.get(enchantment.id);
+        
+                            if (!enchantmentType) throw TypeError();
+        
+                            const random = common(enchantment.level, () => ({
+                                min: 1,
+                                max: enchantmentType.maxLevel
+                            }));
+        
+                            clone.getComponent("enchantable").addEnchantment({
+                                type: enchantmentType,
+                                level: random.generate()
+                            });
+                        });
+        
+                        return that;
+                    },
+                    set(value) {
+                        if (!isEnchantmentEntry(value) && !isArrayOfEnchantmentEntry(value)) {
+                            throw TypeError();
+                        }
+
+                        if (isEnchantmentEntry(value)) value = [value];
+
+                        that.#internal.functions.push((clone) => {
+                            clone.getComponent("enchantable").removeAllEnchantments();
+
+                            for (const enchantment of value) {        
+                                const enchantmentType = EnchantmentTypes.get(enchantment.id);
+        
+                                if (!enchantmentType) throw TypeError();
+        
+                                const random = common(enchantment.level, () => ({
+                                    min: 1,
+                                    max: enchantmentType.maxLevel
+                                }));
+        
+                                clone.getComponent("enchantable").addEnchantment({
+                                    type: enchantmentType,
+                                    level: random.generate()
+                                });
+                            }
+                        });
+        
+                        return that;
+                    }
+                };
+            },
+            set enchantments(_) {
+                throw TypeError();
+            },
+            name(value) {
+                if (typeof value !== "string") {
+                    throw TypeError();
+                }
+
+                that.#internal.functions.push(clone => {
+                    clone.nameTag = value;
+                });
+
+                return that;
+            },
+            lore(value) {
+                if (!Array.isArray(value)) {
+                    throw TypeError();
+                }
+                else if (value.some(_ => typeof _ !== "string")) {
+                    throw TypeError();
+                }
+
+                that.#internal.functions.push(clone => {
+                    clone.setLore(value);
+                });
+
+                return that;
+            },
+            script(value) {
+                if (typeof value !== "function") {
+                    throw TypeError();
+                }
+
+                that.#internal.functions.push(value);
+
+                return that;
+            }
+        };
+    }
+
+    set functions(_) {
+        throw Error();
+    }
+
     getItemStacks() {
         if (this.#internal.value instanceof LootTable) {
             return this.#internal.value.roll();
         }
         else if (this.#internal.value instanceof ItemStack) {
-            return [this.#internal.value];
+            const itemStack = this.#internal.value.clone();
+
+            this.#internal.functions.forEach(f => f(itemStack));
+
+            return [itemStack];
         }
         else throw Error();
     }
@@ -188,7 +373,7 @@ export class LootTable {
                 }
 
                 const index = Math.floor(Math.random() * entries.length);
-                items.push(...entries[index].getItemStacks().map(_ => _.clone()));
+                items.push(...entries[index].getItemStacks());
             }
         }
 

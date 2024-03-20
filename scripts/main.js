@@ -94,7 +94,7 @@ system.runInterval(() => {
 
 
 
-import { LootTable, Pool, Entry, utils } from "./lib/index";
+import { LootTable, Pool, Entry, utils, Random } from "./lib/index";
 
 const jewelriesTable = new LootTable("jewel");
 
@@ -119,10 +119,23 @@ const mainPool = new Pool(3);
 
 mainPool.entries.set([
     new Entry(jewelriesTable),
-    new Entry(new ItemStack("cobblestone", 10), 2),
+    new Entry(new ItemStack("cobblestone", 10), 2)
+    .functions.count({ min: 1, max: 64 }),
     new Entry(new ItemStack("andesite", 10), 2),
     new Entry(new ItemStack("stone", 10), 2),
-    new Entry(new ItemStack("gravel", 10), 2)
+    new Entry(new ItemStack("gravel", 10), 2),
+    new Entry("wooden_sword", 5)
+    .functions.damage({ min: 0, max: 64 })
+    .functions.enchantments.set([
+        {
+            "id": "smite",
+            "level": 4
+        },
+        {
+            "id": "unbreaking",
+            "level": 2
+        }
+    ])
 ]);
 
 mainTable.pools.add(mainPool);

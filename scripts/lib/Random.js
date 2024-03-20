@@ -40,8 +40,14 @@ export class Random extends NumberRange {
         return clone;
     }
     static select(value) {
-        const keys = Object.getOwnPropertyNames(value);
-        const key = keys[Math.floor(Math.random() * keys.length)];
+        if (typeof value !== "object" || value === null) {
+            throw TypeError();
+        }
+
+        const keys = Object.keys(value);
+        const index = new this(0, keys.length - 1).generate();
+        const key = keys[index];
+
         return value[key];
     }
     static chance(chance = 0.5) {
