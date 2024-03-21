@@ -1,14 +1,8 @@
-import { Block, Container, Dimension, EnchantmentType, EnchantmentTypes, ItemStack, Player } from "@minecraft/server";
+import { Container, Dimension, EnchantmentTypes, ItemStack } from "@minecraft/server";
 
-import { Numeric } from "./Numeric";
-
-import { Random } from "./Random";
-
-import { MultiDimensionalVector } from "./MultiDimensionalVector";
-
-import { NumberRange } from "./NumberRange";
 import { EnchantmentTypeIdentifierList } from "../enum/EnchantmentTypeIdentifierList";
-import { utils } from "./Utilities";
+
+import { utils, NumberRange, MultiDimensionalVector, Random, Numeric } from "./index";
 
 export class Entry {
     constructor(value = new ItemStack("minecraft:air"), weight = 1) {
