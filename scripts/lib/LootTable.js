@@ -393,14 +393,10 @@ export class LootTable {
 
         for (const pool of this.#internal.pools) {
             for (let i = 0; i < pool.rolls; i++) {
-                /** @type {Entry[]} */
-                const entries = [];
+                const entries = pool.entries.get();
 
-                for (const entry of pool.entries.get()) {
-                    entries.push(...Array(entry.weight).fill(entry));
-                }
+                const index = Random.choiceByWeight(entries.map(({ weight }) => weight));
 
-                const index = Math.floor(Math.random() * entries.length);
                 items.push(...entries[index].getItemStacks());
             }
         }

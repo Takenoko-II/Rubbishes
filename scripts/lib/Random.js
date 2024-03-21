@@ -2,6 +2,8 @@ import { NumberRange } from "./NumberRange.js";
 
 import { utils } from "./Utilities.js";
 
+import { Numeric } from "./Numeric.js";
+
 export class Random extends NumberRange {
     constructor(value1 = 0, value2 = 0) {
         super(value1, value2);
@@ -72,6 +74,24 @@ export class Random extends NumberRange {
             }
         }
         return chars.join('');
+    }
+
+    static choiceByWeight(list) {
+        if (!Array.isArray(list)) {
+            throw TypeError();
+        }
+        else if (list.some(_ => !Numeric.isNumeric(_))) {
+            throw TypeError();
+        }
+    
+        const summary = list.reduce((a, b) => a + b);
+        const random = Math.floor(Math.random() * summary) + 1;
+    
+        let totalWeight = 0;
+        for (const [index, weight] of list.entries()) {
+            totalWeight += weight;
+            if (totalWeight >= random) return index;
+        }
     }
 }
 

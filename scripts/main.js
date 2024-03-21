@@ -94,7 +94,7 @@ system.runInterval(() => {
 
 
 
-import { LootTable, Pool, Entry, utils, Random } from "./lib/index";
+import { LootTable, Pool, Entry, utils, Random, Numeric } from "./lib/index";
 
 const jewelriesTable = new LootTable("jewel");
 
@@ -126,7 +126,12 @@ mainPool.entries.set([
     new Entry(new ItemStack("gravel", 10), 2),
     new Entry("wooden_sword", 5)
     .functions.damage({ min: 0, max: 64 })
-    .functions.enchantments.random()
+    .functions.enchantments.add([
+        { id: "sharpness", level: { min: 1, max: 5 } },
+        { id: "smite", level: { min: 1, max: 5 } },
+        { id: "bane_of_arthropods", level: { min: 1, max: 5 } }
+    ])
+    .functions.count({ min: 1, max: 256 })
 ]);
 
 mainTable.pools.add(mainPool);
@@ -136,11 +141,3 @@ world.afterEvents.playerStartInteractWithBlock.subscribe(({ block }) => {
 
     mainTable.fill(block.getComponent("inventory").container);
 });
-
-const s = new ItemStack("wooden_sword").clone();
-
-const type = EnchantmentTypes.get("sharpness");
-const level = type.maxLevel;
-
-s.getComponent("enchantable").removeEnchantment(type);
-s.getComponent("enchantable").addEnchantment({ type, level });

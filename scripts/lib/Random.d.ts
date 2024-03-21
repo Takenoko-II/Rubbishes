@@ -45,6 +45,12 @@ export class Random extends NumberRange {
      * ランダムなUUIDを生成します。
      */
     static uuid(): string;
+
+    /**
+     * 渡されたリストの各要素を重みとみなし、ランダムに選択してそのインデックスを返します。
+     * @param list リスト
+     */
+    static choiceByWeight(list: number[]): number;
 }
 
 export class Xorshift {
