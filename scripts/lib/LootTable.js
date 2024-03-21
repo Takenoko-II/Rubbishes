@@ -419,13 +419,13 @@ export class LootTable {
                 const subtractAmount = new Random(1, item.amount).generate();
                 const newAmount = item.amount - subtractAmount;
                 if (newAmount <= 0) {
-                    if (container.getSlot(slot).hasItem() && !container.getItem(slot).isStackableWith(item)) continue;
+                    if (container.getSlot(slot).hasItem()) continue;
                     container.setItem(slot, item);
                     items.splice(items.indexOf(item), 1);
                 }
                 else {
+                    if (container.getSlot(slot).hasItem()) continue;
                     item.amount = subtractAmount;
-                    if (container.getSlot(slot).hasItem() && !container.getItem(slot).isStackableWith(item)) continue;
                     container.setItem(slot, item);
                     item.amount = newAmount;
                 }
@@ -433,7 +433,16 @@ export class LootTable {
                 items = Random.shuffle(items);
             }
 
-            if (container.emptySlotsCount === 0) break;
+            if (container.emptySlotsCount === 0) {
+                for (const item of items) {
+                    for (let i = 0; i < container.size; i++) {
+                        if (container.getSlot(i).isStackableWith(item)) {
+                            container.getSlot(i).amount += Math.min(item.amount, container.getSlot(i).maxAmount - container.getSlot(i).amount);
+                        }
+                    }
+                }
+                break;
+            }
         }
 
         return container;
