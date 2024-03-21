@@ -7,10 +7,13 @@ import { Numeric } from "./Numeric.js";
 export class Random extends NumberRange {
     constructor(value1 = 0, value2 = 0) {
         super(value1, value2);
-            const range = utils.shallowCopy(this);
-            this.xorshift = new Xorshift(0);
-            this.xorshift.range = range;
+
+        const range = utils.shallowCopy(this);
+
+        this.xorshift = new Xorshift(0);
+        this.xorshift.range = range;
     }
+
     generate() {
         let { min, max } = this;
         let digit = 1;
@@ -23,6 +26,7 @@ export class Random extends NumberRange {
         }
         return Math.floor(Math.random() * (max + 1 - min) + min) / digit;
     }
+
     static shuffle(array) {
         if (!Array.isArray(array)) {
             throw new TypeError("Unexpected type passed to function argument[0].");
@@ -41,7 +45,8 @@ export class Random extends NumberRange {
 
         return clone;
     }
-    static select(value) {
+
+    static choice(value) {
         if (typeof value !== "object" || value === null) {
             throw TypeError();
         }
@@ -52,15 +57,18 @@ export class Random extends NumberRange {
 
         return value[key];
     }
+
     static chance(chance = 0.5) {
         const number = Math.random() + chance;
         if (number >= 1) return true;
         else return false;
     }
+
     static sign() {
         if (this.chance()) return 1;
         return -1;
     }
+
     static uuid() {
         const chars = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.split('');
         for (let i = 0; i < chars.length; i++) {

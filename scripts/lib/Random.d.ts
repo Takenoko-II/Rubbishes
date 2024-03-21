@@ -27,7 +27,13 @@ export class Random extends NumberRange {
      * 渡されたオブジェクトからランダムな値を一つ選び出します。
      * @param 値
      */
-    static select<T>(value: object | T[]): T;
+    static choice<T>(value: object | T[]): T;
+
+    /**
+     * 渡されたリストの各要素を重みとみなし、ランダムに選択してそのインデックスを返します。
+     * @param list リスト
+     */
+    static choiceByWeight(list: number[]): number;
 
     /**
      * 1を100%として、渡された数値の確率でtrueを返します。    
@@ -45,12 +51,6 @@ export class Random extends NumberRange {
      * ランダムなUUIDを生成します。
      */
     static uuid(): string;
-
-    /**
-     * 渡されたリストの各要素を重みとみなし、ランダムに選択してそのインデックスを返します。
-     * @param list リスト
-     */
-    static choiceByWeight(list: number[]): number;
 }
 
 export class Xorshift {

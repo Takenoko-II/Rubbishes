@@ -140,8 +140,8 @@ export class Entry {
                             /**
                              * @type {{ id: string; level: number | { min: number; max: number; } }}
                              */
-                            const enchantment = isArrayOfEnchantmentEntry(value) ? Random.select(value) : value;
-        
+                            const enchantment = isArrayOfEnchantmentEntry(value) ? Random.choice(value) : value;
+
                             const enchantmentType = EnchantmentTypes.get(enchantment.id);
         
                             if (!enchantmentType) throw TypeError();
