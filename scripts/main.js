@@ -94,7 +94,7 @@ system.runInterval(() => {
 
 
 
-import { LootTable, Pool, Entry, utils, Random, Numeric } from "./lib/index";
+import { LootTable, Pool, Entry } from "./lib/index";
 
 const jewelriesTable = new LootTable("jewel");
 
@@ -113,25 +113,71 @@ jewelriesPool.entries.set([
 
 jewelriesTable.pools.add(jewelriesPool);
 
+const toolsPool = new Pool(2);
+
+toolsPool.entries.set([
+    new Entry("wooden_sword", 1)
+    .functions.damage({ min: 0, max: 100 })
+    .functions.enchantments.add([
+        { id: "sharpness", level: { min: 1, max: 5 } },
+        { id: "smite", level: { min: 1, max: 5 } },
+        { id: "bane_of_arthropods", level: { min: 1, max: 5 } }
+    ]),
+    new Entry("wooden_pickaxe", 1)
+    .functions.damage({ min: 0, max: 100 })
+    .functions.enchantments.add([
+        { id: "efficiency", level: { min: 1, max: 5 } },
+        { id: "fortune", level: { min: 1, max: 3 } },
+        { id: "silk_touch", level: 1 }
+    ]),
+    new Entry("wooden_axe", 1)
+    .functions.damage({ min: 0, max: 100 })
+    .functions.enchantments.add([
+        { id: "efficiency", level: { min: 1, max: 5 } },
+        { id: "fortune", level: { min: 1, max: 3 } },
+        { id: "silk_touch", level: 1 }
+    ]),
+    new Entry("wooden_shovel", 1)
+    .functions.damage({ min: 0, max: 100 })
+    .functions.enchantments.add([
+        { id: "efficiency", level: { min: 1, max: 5 } },
+        { id: "fortune", level: { min: 1, max: 3 } },
+        { id: "silk_touch", level: 1 }
+    ]),
+    new Entry("wooden_hoe", 1)
+    .functions.damage({ min: 0, max: 100 })
+    .functions.enchantments.add([
+        { id: "efficiency", level: { min: 1, max: 5 } },
+        { id: "fortune", level: { min: 1, max: 3 } },
+        { id: "silk_touch", level: 1 }
+    ])
+]);
+
+const toolsTable = new LootTable("tools");
+
+toolsTable.pools.add(toolsPool);
+
 const mainTable = new LootTable("main");
 
 const mainPool = new Pool(3);
 
 mainPool.entries.set([
-    new Entry(jewelriesTable),
-    new Entry(new ItemStack("cobblestone", 10), 2)
+    new Entry("stone", 1)
     .functions.count({ min: 1, max: 64 }),
-    new Entry(new ItemStack("andesite", 10), 2),
-    new Entry(new ItemStack("stone", 10), 2),
-    new Entry(new ItemStack("gravel", 10), 2),
-    new Entry("wooden_sword", 5)
-    .functions.damage({ min: 0, max: 64 })
-    .functions.enchantments.add([
-        { id: "sharpness", level: { min: 1, max: 5 } },
-        { id: "smite", level: { min: 1, max: 5 } },
-        { id: "bane_of_arthropods", level: { min: 1, max: 5 } }
-    ])
-    .functions.count({ min: 1, max: 256 })
+    new Entry("granite", 1)
+    .functions.count({ min: 1, max: 64 }),
+    new Entry("andesite", 1)
+    .functions.count({ min: 1, max: 64 }),
+    new Entry("diorite", 1)
+    .functions.count({ min: 1, max: 64 }),
+    new Entry("cobblestone", 1)
+    .functions.count({ min: 1, max: 64 }),
+    new Entry("gravel", 1)
+    .functions.count({ min: 1, max: 64 }),
+    new Entry("dirt", 1)
+    .functions.count({ min: 1, max: 64 }),
+    new Entry(jewelriesTable, 3),
+    new Entry(toolsTable, 2)
 ]);
 
 mainTable.pools.add(mainPool);
