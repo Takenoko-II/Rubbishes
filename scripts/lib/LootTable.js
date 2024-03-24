@@ -52,7 +52,7 @@ export class Entry {
     }
 
     set type(_) {
-        throw Error();
+        throw TypeError("'type' is read-only");
     }
 
     get functions() {
@@ -248,7 +248,7 @@ export class Entry {
     }
 
     set functions(_) {
-        throw Error();
+        throw TypeError("'functions' is read-only");
     }
 
     getItemStacks() {
@@ -321,7 +321,7 @@ export class Pool {
     }
 
     set entries(_) {
-        throw Error();
+        throw TypeError("'entries' is read-only");
     }
 }
 
@@ -329,7 +329,13 @@ export class LootTable {
     constructor(id) {
         if (typeof id !== "string") throw TypeError();
 
+        if ([...LootTable.#tables].some(_ => _.id === id)) {
+            throw Error("同じIDのルートテーブルを作成することはできません");
+        }
+
         this.#internal.id = id;
+
+        LootTable.#tables.add(this);
     }
 
     #internal = {
@@ -348,7 +354,7 @@ export class LootTable {
     }
 
     set id(_) {
-        throw Error();
+        throw TypeError("'id' is read-only");
     }
 
     get pools() {
@@ -378,7 +384,7 @@ export class LootTable {
     }
 
     set pools(_) {
-        throw Error();
+        throw TypeError("'pools' is read-only");
     }
 
     roll() {
@@ -531,5 +537,18 @@ export class LootTable {
         lootTable.pools.set(pools);
 
         return lootTable;
+    }
+
+    /**
+     * @type {Set<LootTable>}
+     */
+    static #tables = new Set();
+
+    static get(id) {
+        if (typeof id !== "string") {
+            throw TypeError();
+        }
+
+        return [...this.#tables].find(_ => _.id === id);
     }
 }

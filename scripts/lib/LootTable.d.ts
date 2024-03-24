@@ -29,6 +29,8 @@ class Entry {
      * このエントリが返すアイテムの配列
      */
     getItemStacks(): ItemStack[];
+
+    static readonly prototype;
 }
 
 interface NumberRange {
@@ -152,6 +154,8 @@ class Pool {
      * エントリのリスト
      */
     readonly entries: Entries;
+
+    static readonly prototype;
 }
 
 interface Entries {
@@ -220,6 +224,12 @@ class LootTable {
      * @param json ルートテーブルのJSONテキストフォーマット
      */
     static create(id: string, json: LootTableJSONTextFormat): LootTable;
+
+    /**
+     * IDからルートテーブルを取得します。
+     * @param id ID
+     */
+    static get(id: string): LootTable;
 
     static readonly prototype;
 }
