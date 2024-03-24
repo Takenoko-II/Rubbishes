@@ -410,40 +410,65 @@ export class LootTable {
 
         container.clearAll();
 
-        const slots = Random.shuffle([...Array(container.size).keys()]);
+        const slotNumbers = Random.shuffle([...Array(container.size).keys()]);
 
-        while (items.length > 0) {
-            for (const slot of slots) {
+        let i = 0;
+        a: while (items.length > 0) {
+            for (const slotNumber of slotNumbers) {
                 if (Random.chance(0.75) || items.length <= 0) continue;
+
+                const slot = container.getSlot(slotNumber);
                 const item = items[0];
-                const subtractAmount = new Random(1, item.amount).generate();
-                const newAmount = item.amount - subtractAmount;
+
+                const randomAmount = new Random(1, item.amount).generate();
+
+                if (slot.hasItem()) {
+                    if (slot.isStackableWith(item)) {
+                        const addableAmount = slot.maxAmount - slot.amount;
+                        const addend = Math.min(randomAmount, addableAmount);
+
+                        slot.amount += addend;
+                        if ((item.amount - addend) <= 0) {
+                            items.shift();
+                        }
+                        else {
+                            item.amount -= addend;
+                        }
+                    }
+
+                    continue;
+                }
+
+                const newAmount = item.amount - randomAmount;
+
                 if (newAmount <= 0) {
-                    if (container.getSlot(slot).hasItem()) continue;
-                    container.setItem(slot, item);
-                    items.splice(items.indexOf(item), 1);
+                    slot.setItem(item);
+                    items.shift();
                 }
                 else {
-                    if (container.getSlot(slot).hasItem()) continue;
-                    item.amount = subtractAmount;
-                    container.setItem(slot, item);
+                    item.amount = randomAmount;
+                    slot.setItem(item);
                     item.amount = newAmount;
                 }
 
                 items = Random.shuffle(items);
             }
+            i++;
+            if (i > 1000) throw new Error("overflow!?!?!?!?")
 
-            if (container.emptySlotsCount === 0) {
+            if (container.emptySlotsCount > 0) continue a;
+
+            for (let i = 0; i < container.size; i++) {
+                const slot = container.getSlot(i);
                 for (const item of items) {
-                    for (let i = 0; i < container.size; i++) {
-                        if (container.getSlot(i).isStackableWith(item)) {
-                            container.getSlot(i).amount += Math.min(item.amount, container.getSlot(i).maxAmount - container.getSlot(i).amount);
-                        }
-                    }
+                    if (slot.isStackableWith(item)) continue a;
                 }
-                break;
             }
+
+            break a;
         }
+
+        console.warn(i);
 
         return container;
     }

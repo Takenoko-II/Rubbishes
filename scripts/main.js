@@ -94,7 +94,7 @@ system.runInterval(() => {
 
 
 
-import { LootTable, Pool, Entry } from "./lib/index";
+import { LootTable, Pool, Entry, MultiDimensionalVector, Random } from "./lib/index";
 
 const jewelriesTable = new LootTable("jewel");
 
