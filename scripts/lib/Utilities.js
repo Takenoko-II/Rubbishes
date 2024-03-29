@@ -178,7 +178,7 @@ export class Utilities {
         const list = [];
     
         for (const value of values) {
-            list.push(this.stringify(value));
+            list.push(Utilities.prototype.stringify(value));
         }
 
         console.warn(...list);
@@ -286,6 +286,29 @@ export class Utilities {
                     return String(object);
             }
         })(data, 1);
+    }
+
+    get math() {
+        return {
+            radian(degree) {
+                if (!Numeric.isNumeric(degree)) {
+                    throw TypeError();
+                }
+
+                return degree * Math.PI / 180;
+            },
+            degree(radian) {
+                if (!Numeric.isNumeric(radian)) {
+                    throw TypeError();
+                }
+
+                return radian * 180 / Math.PI;
+            }
+        };
+    }
+
+    set math(_) {
+        throw TypeError("'math' is read-only");
     }
 }
 

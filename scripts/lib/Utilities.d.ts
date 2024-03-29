@@ -50,6 +50,23 @@ export class Utilities {
      * @param space スペースの文字数
      */
     stringifyWithoutColor(data: any, getPrototype?: boolean, space?: number): string;
+
+    /**
+     * math
+     */
+    readonly math: MathUtilities;
+}
+
+interface MathUtilities {
+    /**
+     * 
+     */
+    radian(degree: number): number;
+
+    /**
+     * 
+     */
+    degree(radian: number): number;
 }
 
 export const utils: Utilities;

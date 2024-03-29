@@ -185,10 +185,15 @@ export class Entry {
                     random() {
                         that.#internal.functions.push(clone => {
                             const identifiers = EnchantmentTypeIdentifierList.slice(0).filter(id => {
-                                return clone.getComponent("enchantable").canAddEnchantment({
-                                    type: EnchantmentTypes.get(id),
-                                    level: 1
-                                });
+                                try {
+                                    return clone.getComponent("enchantable").canAddEnchantment({
+                                        type: EnchantmentTypes.get(id),
+                                        level: 1
+                                    });
+                                }
+                                catch {
+                                    return false;
+                                }
                             });
 
                             const enchantmentIds = Random.shuffle(identifiers).slice(0, new Random(1, identifiers.length - 1).generate());
@@ -198,8 +203,10 @@ export class Entry {
                                 const level = new Random(1, type.maxLevel).generate();
 
                                 clone.getComponent("enchantable").removeEnchantment(type);
-                                utils.out(type.id, level, clone.getComponent("enchantable").canAddEnchantment({type,level}));
-                                clone.getComponent("enchantable").addEnchantment({ type, level });
+                                try {
+                                    clone.getComponent("enchantable").addEnchantment({ type, level });
+                                }
+                                catch {}
                             }
                         });
 
@@ -473,8 +480,6 @@ export class LootTable {
 
             break a;
         }
-
-        console.warn(i);
 
         return container;
     }

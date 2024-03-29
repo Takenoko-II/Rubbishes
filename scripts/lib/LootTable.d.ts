@@ -121,7 +121,7 @@ interface EnchantmentsModifier {
 
     /**
      * アイテムのエンチャントを完全にランダムで設定します。
-     * @deprecated
+     * @deprecated Minecraft側のバグのため推奨されません。
      */
     random(): Entry;
 }

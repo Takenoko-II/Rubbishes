@@ -2,7 +2,7 @@ import "./prototypePollution/index";
 
 import "./commands";
 
-import { world, system, Player, EquipmentSlot, ItemStack } from "@minecraft/server";
+import { world, system, Player, EquipmentSlot, ItemStack, System } from "@minecraft/server";
 
 import { ChatCommandBuilder } from "./ChatCommand/index";
 
@@ -122,7 +122,8 @@ toolsPool.entries.set([
         { id: "sharpness", level: { min: 1, max: 5 } },
         { id: "smite", level: { min: 1, max: 5 } },
         { id: "bane_of_arthropods", level: { min: 1, max: 5 } }
-    ]),
+    ])
+    .functions.enchantments.random(),
     new Entry("wooden_pickaxe", 1)
     .functions.damage({ min: 0, max: 100 })
     .functions.enchantments.add([
