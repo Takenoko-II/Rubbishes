@@ -229,7 +229,7 @@ class LootTable {
      * IDからルートテーブルを取得します。
      * @param id ID
      */
-    static get(id: string): LootTable;
+    static get(id: string): LootTable | undefined;
 
     static readonly prototype;
 }

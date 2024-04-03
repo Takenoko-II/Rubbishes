@@ -2,7 +2,7 @@ import "./prototypePollution/index";
 
 import "./commands";
 
-import { world, system, Player, EquipmentSlot, ItemStack, System } from "@minecraft/server";
+import { world, system, Player, EquipmentSlot, ItemStack } from "@minecraft/server";
 
 import { ChatCommandBuilder } from "./ChatCommand/index";
 
@@ -94,7 +94,7 @@ system.runInterval(() => {
 
 
 
-import { LootTable, Pool, Entry, utils } from "./lib/index";
+import { LootTable, Pool, Entry } from "./lib/index";
 
 const jewelriesTable = new LootTable("jewel");
 
