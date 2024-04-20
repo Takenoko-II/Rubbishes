@@ -8,10 +8,22 @@ export class ActionFormBuilder {
     #data = {
         title: "",
         body: "",
+        /**
+         * @type {{ name: string, iconPath?: string, callbacks: Set<(player: Player) => void> }[]}
+         */
         buttons: [],
         cancelationCallbacks: {
+            /**
+             * @type {Set<(import("./UI").ServerFormCancelEvent) => void>}
+             */
             "UserBusy": new Set(),
+            /**
+             * @type {Set<(import("./UI").ServerFormCancelEvent) => void>}
+             */
             "UserClosed": new Set(),
+            /**
+             * @type {Set<(import("./UI").ServerFormCancelEvent) => void>}
+             */
             "Any": new Set()
         },
         callbackFn() {}
@@ -165,10 +177,48 @@ export class ActionFormBuilder {
 export class ModalFormBuilder {
     #data = {
         title: "",
+        /**
+         * @type {(
+         *      {
+         *          id: string,
+         *          type: "toggle",
+         *          label: string,
+         *          defaultValue: boolean
+         *      } | {
+         *          id: string,
+         *          type: "slider",
+         *          label: string,
+         *          step: number,
+         *          range: import("@minecraft/server").NumberRange,
+         *          defaultValue: number
+         *      } | {
+        *           id: string,
+        *           type: "textField",
+        *           label: string,
+        *           placeHolder: string,
+        *           defaultValue: number
+        *      } | {
+        *           id: string,
+        *           type: "dropdown",
+        *           label: string,
+        *           list: string[],
+        *           defaultValueIndex: number
+        *      }
+         * )[]}
+         */
         values: [],
         cancelationCallbacks: {
+            /**
+             * @type {Set<(import("./UI").ServerFormCancelEvent) => void>}
+             */
             "UserBusy": new Set(),
+            /**
+             * @type {Set<(import("./UI").ServerFormCancelEvent) => void>}
+             */
             "UserClosed": new Set(),
+            /**
+             * @type {Set<(import("./UI").ServerFormCancelEvent) => void>}
+             */
             "Any": new Set()
         },
         callbackFn() {}
@@ -405,15 +455,30 @@ export class MessageFormBuilder {
         body: "",
         button1: {
             name: "",
+            /**
+             * @type {Set<(player: Player) => void>}
+             */
             callbacks: new Set()
         },
         button2: {
             name: "",
+            /**
+             * @type {Set<(player: Player) => void>}
+             */
             callbacks: new Set()
         },
         cancelationCallbacks: {
+            /**
+             * @type {Set<(import("./UI").ServerFormCancelEvent) => void>}
+             */
             "UserBusy": new Set(),
+            /**
+             * @type {Set<(import("./UI").ServerFormCancelEvent) => void>}
+             */
             "UserClosed": new Set(),
+            /**
+             * @type {Set<(import("./UI").ServerFormCancelEvent) => void>}
+             */
             "Any": new Set()
         },
         callbackFn() {}
