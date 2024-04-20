@@ -192,18 +192,18 @@ export class ModalFormBuilder {
          *          range: import("@minecraft/server").NumberRange,
          *          defaultValue: number
          *      } | {
-        *           id: string,
-        *           type: "textField",
-        *           label: string,
-        *           placeHolder: string,
-        *           defaultValue: number
-        *      } | {
-        *           id: string,
-        *           type: "dropdown",
-        *           label: string,
-        *           list: string[],
-        *           defaultValueIndex: number
-        *      }
+         *           id: string,
+         *           type: "textField",
+         *           label: string,
+         *           placeHolder: string,
+         *           defaultValue: number
+         *      } | {
+         *           id: string,
+         *           type: "dropdown",
+         *           label: string,
+         *           list: string[],
+         *           defaultValueIndex: number
+         *      }
          * )[]}
          */
         values: [],
