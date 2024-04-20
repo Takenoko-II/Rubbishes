@@ -14,7 +14,7 @@ export class ActionFormBuilder {
             "UserClosed": new Set(),
             "Any": new Set()
         },
-        callbackFn: () => undefined
+        callbackFn() {}
     };
 
     title(text) {
@@ -40,7 +40,7 @@ export class ActionFormBuilder {
         return this;
     }
 
-    button(name, iconPath) {
+    button(name, a, b) {
         if (typeof name !== "string") {
             throw new TypeError();
         }
@@ -49,80 +49,43 @@ export class ActionFormBuilder {
 
         this.#data.buttons.push(button);
 
-        if (typeof iconPath === "string") button.iconPath = iconPath;
+        if (typeof a === "string" && b === undefined) {
+            button.iconPath = a;
+        }
+        else if (typeof a === "function" && b === undefined) {
+            button.callbacks.add(a);
+        }
+        else if (typeof a === "string" && typeof b === "function") {
+            button.iconPath = a;
+            button.callbacks.add(b);
+        }
+        else if (!(a === undefined && b === undefined)) throw new TypeError();
 
-        const that = this;
-
-        return {
-            on(callbackFn) {
-                if (typeof callbackFn !== "function") {
-                    throw new TypeError();
-                }
-                else if (button.callbacks.has(callbackFn)) {
-                    throw new Error();
-                }
-
-                button.callbacks.add(callbackFn);
-
-                return that;
-            },
-            off(callbackFn) {
-                if (typeof callbackFn !== "function") {
-                    throw new TypeError();
-                }
-
-                button.callbacks.delete(callbackFn);
-
-                return that;
-            },
-            get pass() {
-                return that;
-            },
-            set pass(_) {
-                throw new Error();
-            }
-        };
+        return this;
     }
 
-    get cancelation() {
-        const that = this;
+    onCancel(value, callbackFn) {
+        if (typeof callbackFn !== "function") {
+            throw new TypeError();
+        }
 
-        return {
-            on(value, callbackFn) {
-                if (typeof callbackFn !== "function") {
-                    throw new TypeError();
-                }
-
-                switch (value) {
-                    case "Any": {
-                        that.#data.cancelationCallbacks.Any.add(callbackFn);
-                        break;
-                    }
-                    case "UserBusy": {
-                        that.#data.cancelationCallbacks.UserBusy.add(callbackFn);
-                        break;
-                    }
-                    case "UserClosed": {
-                        that.#data.cancelationCallbacks.UserClosed.add(callbackFn);
-                        break;
-                    }
-                    default: throw new Error();
-                }
-
-                return that;
-            },
-            off(callbackFn) {
-                that.#data.cancelationCallbacks.Any.delete(callbackFn);
-                that.#data.cancelationCallbacks.UserBusy.delete(callbackFn);
-                that.#data.cancelationCallbacks.UserClosed.delete(callbackFn);
-
-                return that;
+        switch (value) {
+            case "Any": {
+                this.#data.cancelationCallbacks.Any.add(callbackFn);
+                break;
             }
-        };
-    }
+            case "UserBusy": {
+                this.#data.cancelationCallbacks.UserBusy.add(callbackFn);
+                break;
+            }
+            case "UserClosed": {
+                this.#data.cancelationCallbacks.UserClosed.add(callbackFn);
+                break;
+            }
+            default: throw new Error();
+        }
 
-    set cancelation(_) {
-        throw new Error();
+        return this;
     }
 
     show(player) {
@@ -197,7 +160,7 @@ export class ModalFormBuilder {
             "UserClosed": new Set(),
             "Any": new Set()
         },
-        callbackFn: () => undefined
+        callbackFn() {}
     };
 
     title(text) {
@@ -300,45 +263,28 @@ export class ModalFormBuilder {
         return this;
     }
 
-    get cancelation() {
-        const that = this;
+    onCancel(value, callbackFn) {
+        if (typeof callbackFn !== "function") {
+            throw new TypeError();
+        }
 
-        return {
-            on(value, callbackFn) {
-                if (typeof callbackFn !== "function") {
-                    throw new TypeError();
-                }
-
-                switch (value) {
-                    case "Any": {
-                        that.#data.cancelationCallbacks.Any.add(callbackFn);
-                        break;
-                    }
-                    case "UserBusy": {
-                        that.#data.cancelationCallbacks.UserBusy.add(callbackFn);
-                        break;
-                    }
-                    case "UserClosed": {
-                        that.#data.cancelationCallbacks.UserClosed.add(callbackFn);
-                        break;
-                    }
-                    default: throw new Error();
-                }
-
-                return that;
-            },
-            off(callbackFn) {
-                that.#data.cancelationCallbacks.Any.delete(callbackFn);
-                that.#data.cancelationCallbacks.UserBusy.delete(callbackFn);
-                that.#data.cancelationCallbacks.UserClosed.delete(callbackFn);
-
-                return that;
+        switch (value) {
+            case "Any": {
+                this.#data.cancelationCallbacks.Any.add(callbackFn);
+                break;
             }
-        };
-    }
+            case "UserBusy": {
+                this.#data.cancelationCallbacks.UserBusy.add(callbackFn);
+                break;
+            }
+            case "UserClosed": {
+                this.#data.cancelationCallbacks.UserClosed.add(callbackFn);
+                break;
+            }
+            default: throw new Error();
+        }
 
-    set cancelation(_) {
-        throw new Error();
+        return this;
     }
 
     onSubmit(callbackFn) {
@@ -448,7 +394,7 @@ export class MessageFormBuilder {
             "UserClosed": new Set(),
             "Any": new Set()
         },
-        callbackFn: () => undefined
+        callbackFn() {}
     };
 
     title(text) {
@@ -502,45 +448,28 @@ export class MessageFormBuilder {
         return this;
     }
 
-    get cancelation() {
-        const that = this;
+    onCancel(value, callbackFn) {
+        if (typeof callbackFn !== "function") {
+            throw new TypeError();
+        }
 
-        return {
-            on(value, callbackFn) {
-                if (typeof callbackFn !== "function") {
-                    throw new TypeError();
-                }
-
-                switch (value) {
-                    case "Any": {
-                        that.#data.cancelationCallbacks.Any.add(callbackFn);
-                        break;
-                    }
-                    case "UserBusy": {
-                        that.#data.cancelationCallbacks.UserBusy.add(callbackFn);
-                        break;
-                    }
-                    case "UserClosed": {
-                        that.#data.cancelationCallbacks.UserClosed.add(callbackFn);
-                        break;
-                    }
-                    default: throw new Error();
-                }
-
-                return that;
-            },
-            off(callbackFn) {
-                that.#data.cancelationCallbacks.Any.delete(callbackFn);
-                that.#data.cancelationCallbacks.UserBusy.delete(callbackFn);
-                that.#data.cancelationCallbacks.UserClosed.delete(callbackFn);
-
-                return that;
+        switch (value) {
+            case "Any": {
+                this.#data.cancelationCallbacks.Any.add(callbackFn);
+                break;
             }
-        };
-    }
+            case "UserBusy": {
+                this.#data.cancelationCallbacks.UserBusy.add(callbackFn);
+                break;
+            }
+            case "UserClosed": {
+                this.#data.cancelationCallbacks.UserClosed.add(callbackFn);
+                break;
+            }
+            default: throw new Error();
+        }
 
-    set cancelation(_) {
-        throw new Error();
+        return this;
     }
 
     show(player) {

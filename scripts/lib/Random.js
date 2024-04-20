@@ -53,6 +53,11 @@ export class Random extends NumberRange {
 
         const keys = Object.keys(value);
         const index = new this(0, keys.length - 1).generate();
+
+        if (keys.length === 0) {
+            throw new RangeError("キーの数は1以上である必要があります");
+        }
+
         const key = keys[index];
 
         return value[key];
@@ -71,6 +76,7 @@ export class Random extends NumberRange {
 
     static uuid() {
         const chars = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.split('');
+
         for (let i = 0; i < chars.length; i++) {
             switch (chars[i]) {
                 case 'x':
@@ -81,6 +87,7 @@ export class Random extends NumberRange {
                     break;
             }
         }
+
         return chars.join('');
     }
 
@@ -105,34 +112,48 @@ export class Random extends NumberRange {
 
 export class Xorshift {
     constructor(seed) {
+        if (!Numeric.isNumeric(seed)) {
+            throw new TypeError();
+        }
+
         this.seed = seed;
     }
+
     #x = 123456789;
     #y = 362436069;
     #z = 521288629;
+
     rand(range = undefined) {
         if (range === undefined) range = this.range;
+
         let t = this.#x ^ (this.#x << 11);
+
         this.#x = this.#y;
         this.#y = this.#z;
         this.#z = this.seed;
         this.seed = (this.seed ^ (this.seed >>> 19)) ^ (t ^ (t >>> 8));
+
         if (range !== undefined) {
             let { min, max } = range;
             let digit = 1;
             let loopCount = 0;
+
             while (loopCount < 20 && (!Number.isInteger(min) || !Number.isInteger(max))) {
                 min *= 10;
                 max *= 10;
                 digit *= 10;
                 loopCount += 1;
             }
+
             return (Math.abs(this.seed) % (max + 1 - min) + min) / digit;
         }
+
         return this.seed;
     }
+
     uuid() {
         const chars = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.split('');
+
         for (let i = 0; i < chars.length; i++) {
             switch (chars[i]) {
                 case 'x':
@@ -143,14 +164,17 @@ export class Xorshift {
                     break;
             }
         }
+
         return chars.join('');
     }
+
     shuffle(array) {
         if (!Array.isArray(array)) {
-            throw new TypeError("Unexpected type passed to function argument[0].");
+            throw new TypeError();
         }
 
         const clone = utils.shallowCopy(array);
+
         for (let i = clone.length - 1; i >= 0; i--) {
             const current = clone[i];
             const random = this.rand({ min: 0, max: i });

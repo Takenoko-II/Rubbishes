@@ -2,7 +2,28 @@ import { Player } from "@minecraft/server";
 
 import { NumberRange } from "./NumberRange";
 
-export class ActionFormBuilder {
+interface ServerFormBuilder {
+    /**
+     * フォームのタイトルを変更します。
+     * @param text タイトル
+     */
+    title(text: string): ServerFormBuilder;
+
+    /**
+     * フォームが閉じられた際に呼び出されるコールバック関数を登録します。
+     * @param value 閉じた要因
+     * @param callbackFn コールバック関数
+     */
+    onCancel(value: "Any" | "UserBusy" | "UserClosed", callbackFn: (player: Player) => void): ServerFormBuilder;
+
+    /**
+     * フォームを表示します。
+     * @param player プレイヤー
+     */
+    show(player: Player): void;
+}
+
+export class ActionFormBuilder implements ServerFormBuilder {
     /**
      * フォームのタイトルを変更します。
      * @param text タイトル
@@ -18,14 +39,37 @@ export class ActionFormBuilder {
     /**
      * フォームにボタンを追加します。
      * @param name ボタンの名前
-     * @param iconPath ボタンのアイコンのテクスチャパス
      */
-    button(name: string, iconPath?: string): ActionFormButtonPushEventSignal;
+    button(name: string): ActionFormBuilder;
 
     /**
-     * フォームが閉じたとき発火するイベント
+     * フォームにボタンを追加します。
+     * @param name ボタンの名前
+     * @param iconPath ボタンのアイコンのテクスチャパス
      */
-    readonly cancelation: ActionFormCancelEventSignal;
+    button(name: string, iconPath: string): ActionFormBuilder;
+
+    /**
+     * フォームにボタンを追加します。
+     * @param name ボタンの名前
+     * @param callbackFn コールバック関数
+     */
+    button(name: string, callbackFn: (player: Player) => void): ActionFormBuilder;
+
+    /**
+     * フォームにボタンを追加します。
+     * @param name ボタンの名前
+     * @param iconPath ボタンのアイコンのテクスチャパス
+     * @param callbackFn コールバック関数
+     */
+    button(name: string, iconPath: string, callbackFn: (player: Player) => void): ActionFormBuilder;
+
+    /**
+     * フォームが閉じられた際に呼び出されるコールバック関数を登録します。
+     * @param value 閉じた要因
+     * @param callbackFn コールバック関数
+     */
+    onCancel(value: "Any" | "UserBusy" | "UserClosed", callbackFn: (player: Player) => void): ActionFormBuilder;
 
     /**
      * ボタンを押した際に発火するイベントのコールバックを登録します。
@@ -40,41 +84,7 @@ export class ActionFormBuilder {
     show(player: Player): void;
 }
 
-interface ActionFormButtonPushEventSignal {
-    /**
-     * このボタンを押した際に呼び出されるコールバックを登録します。
-     * @param callbackFn コールバック関数
-     */
-    on(callbackFn: (player: Player) => void): ActionFormBuilder;
-
-    /**
-     * このボタンを押した際に呼び出されるコールバックをの登録を解除します。
-     * @param callbackFn コールバック関数
-     */
-    off(callbackFn: (player: Player) => void): ActionFormBuilder;
-
-    /**
-     * このボタンを押した際の処理の定義を通過します。
-     */
-    readonly pass: ActionFormBuilder;
-}
-
-interface ActionFormCancelEventSignal {
-    /**
-     * フォームが閉じられた際に呼び出されるコールバック関数を登録します。
-     * @param value 閉じた要因
-     * @param callbackFn コールバック関数
-     */
-    on(value: "Any" | "UserBusy" | "UserClosed", callbackFn: (player: Player) => void): ActionFormBuilder;
-
-    /**
-     * フォームが閉じられた際に呼び出されるコールバック関数の登録を解除します。
-     * @param callbackFn コールバック関数
-     */
-    off(callbackFn: (player: Player) => void): ActionFormBuilder;
-}
-
-export class ModalFormBuilder {
+export class ModalFormBuilder implements ServerFormBuilder {
     /**
      * フォームのタイトルを変更します。
      * @param text タイトル
@@ -118,9 +128,11 @@ export class ModalFormBuilder {
     textField(id: string, label: string, placeHolder: string, defaultValue?: string): ModalFormBuilder;
 
     /**
-     * フォームが閉じたとき発火するイベント
+     * フォームが閉じられた際に呼び出されるコールバック関数を登録します。
+     * @param value 閉じた要因
+     * @param callbackFn コールバック関数
      */
-    readonly cancelation: ModalFormCancelEventSignal;
+    onCancel(value: "Any" | "UserBusy" | "UserClosed", callbackFn: (player: Player) => void): ModalFormBuilder;
 
     /**
      * フォームの入力が送信された際に発火するイベントのコールバックを登録します。
@@ -135,39 +147,7 @@ export class ModalFormBuilder {
     show(player: Player): void;
 }
 
-interface ModalFormSubmitEvent {
-    /**
-     * プレイヤー
-     */
-    readonly player: Player;
-
-    /**
-     * 入力された値を返します。
-     */
-    get(id: string): string | boolean | number;
-
-    /**
-     * 入力された値をすべて返します。
-     */
-    getAll(): (string | boolean | number)[];
-}
-
-interface ModalFormCancelEventSignal {
-    /**
-     * フォームが閉じられた際に呼び出されるコールバック関数を登録します。
-     * @param value 閉じた要因
-     * @param callbackFn コールバック関数
-     */
-    on(value: "Any" | "UserBusy" | "UserClosed", callbackFn: (player: Player) => void): ModalFormBuilder;
-
-    /**
-     * フォームが閉じられた際に呼び出されるコールバック関数の登録を解除します。
-     * @param callbackFn コールバック関数
-     */
-    off(callbackFn: (player: Player) => void): ModalFormBuilder;
-}
-
-export class MessageFormBuilder {
+export class MessageFormBuilder implements ServerFormBuilder {
     /**
      * フォームのタイトルを変更します。
      * @param text タイトル
@@ -195,9 +175,11 @@ export class MessageFormBuilder {
     button2(name: string, callbackFn?: (player: Player) => void): MessageFormBuilder;
 
     /**
-     * フォームが閉じたとき発火するイベント
+     * フォームが閉じられた際に呼び出されるコールバック関数を登録します。
+     * @param value 閉じた要因
+     * @param callbackFn コールバック関数
      */
-    readonly cancelation: MessageFormCancelEventSignal;
+    onCancel(value: "Any" | "UserBusy" | "UserClosed", callbackFn: (player: Player) => void): MessageFormBuilder;
 
     /**
      * ボタンを押した際に発火するイベントのコールバックを登録します。
@@ -212,21 +194,6 @@ export class MessageFormBuilder {
     show(player: Player): void;
 }
 
-interface MessageFormCancelEventSignal {
-    /**
-     * フォームが閉じられた際に呼び出されるコールバック関数を登録します。
-     * @param value 閉じた要因
-     * @param callbackFn コールバック関数
-     */
-    on(value: "Any" | "UserBusy" | "UserClosed", callbackFn: (player: Player) => void): MessageFormBuilder;
-
-    /**
-     * フォームが閉じられた際に呼び出されるコールバック関数の登録を解除します。
-     * @param callbackFn コールバック関数
-     */
-    off(callbackFn: (player: Player) => void): MessageFormBuilder;
-}
-
 interface ServerFormButtonPushEvent {
     /**
      * プレイヤー
@@ -237,4 +204,21 @@ interface ServerFormButtonPushEvent {
      * ボタンの名前
      */
     readonly buttonName: string;
+}
+
+interface ModalFormSubmitEvent {
+    /**
+     * プレイヤー
+     */
+    readonly player: Player;
+
+    /**
+     * 入力された値を返します。
+     */
+    get(id: string): string | number | boolean | undefined;
+
+    /**
+     * 入力された値をすべて返します。
+     */
+    getAll(): (string | number | boolean | undefined)[];
 }
