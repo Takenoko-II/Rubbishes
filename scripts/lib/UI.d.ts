@@ -66,10 +66,10 @@ export class ActionFormBuilder implements ServerFormBuilder {
 
     /**
      * フォームが閉じられた際に呼び出されるコールバック関数を登録します。
-     * @param value 閉じた要因
+     * @param value 閉じた理由
      * @param callbackFn コールバック関数
      */
-    onCancel(value: "Any" | "UserBusy" | "UserClosed", callbackFn: (player: Player) => void): ActionFormBuilder;
+    onCancel(value: "Any" | "UserBusy" | "UserClosed", callbackFn: (arg: ServerFormCancelEvent) => void): ActionFormBuilder;
 
     /**
      * ボタンを押した際に発火するイベントのコールバックを登録します。
@@ -129,10 +129,10 @@ export class ModalFormBuilder implements ServerFormBuilder {
 
     /**
      * フォームが閉じられた際に呼び出されるコールバック関数を登録します。
-     * @param value 閉じた要因
+     * @param value 閉じた理由
      * @param callbackFn コールバック関数
      */
-    onCancel(value: "Any" | "UserBusy" | "UserClosed", callbackFn: (player: Player) => void): ModalFormBuilder;
+    onCancel(value: "Any" | "UserBusy" | "UserClosed", callbackFn: (arg: ServerFormCancelEvent) => void): ModalFormBuilder;
 
     /**
      * フォームの入力が送信された際に発火するイベントのコールバックを登録します。
@@ -176,10 +176,10 @@ export class MessageFormBuilder implements ServerFormBuilder {
 
     /**
      * フォームが閉じられた際に呼び出されるコールバック関数を登録します。
-     * @param value 閉じた要因
+     * @param value 閉じた理由
      * @param callbackFn コールバック関数
      */
-    onCancel(value: "Any" | "UserBusy" | "UserClosed", callbackFn: (player: Player) => void): MessageFormBuilder;
+    onCancel(value: "Any" | "UserBusy" | "UserClosed", callbackFn: (arg: ServerFormCancelEvent) => void): MessageFormBuilder;
 
     /**
      * ボタンを押した際に発火するイベントのコールバックを登録します。
@@ -221,4 +221,21 @@ interface ModalFormSubmitEvent {
      * 入力された値をすべて返します。
      */
     getAll(): (string | number | boolean | undefined)[];
+}
+
+interface ServerFormCancelEvent {
+    /**
+     * プレイヤー
+     */
+    readonly player: Player;
+
+    /**
+     * 閉じた理由
+     */
+    readonly reason: "UserBusy" | "UserClosed";
+
+    /**
+     * このフォームを再度開く
+     */
+    reopen(): void;
 }

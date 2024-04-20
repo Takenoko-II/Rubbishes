@@ -1,4 +1,4 @@
-import { Player } from "@minecraft/server";
+import { Player, system } from "@minecraft/server";
 
 import { ActionFormData, ModalFormData, MessageFormData } from "@minecraft/server-ui";
 
@@ -110,18 +110,29 @@ export class ActionFormBuilder {
 
         form.show(player).then(response => {
             if (response.selection === undefined) {
+                const that = this;
+                const input = {
+                    player,
+                    reason: response.cancelationReason,
+                    reopen() {
+                        system.run(() => {
+                            that.show(player);
+                        });
+                    }
+                };
+
                 this.#data.cancelationCallbacks.Any.forEach(callbackFn => {
-                    callbackFn(player);
+                    callbackFn(input);
                 });
 
                 if (response.cancelationReason === "UserBusy") {
                     this.#data.cancelationCallbacks.UserBusy.forEach(callbackFn => {
-                        callbackFn(player);
+                        callbackFn(input);
                     });
                 }
                 else if (response.cancelationReason === "UserClosed") {
                     this.#data.cancelationCallbacks.UserClosed.forEach(callbackFn => {
-                        callbackFn(player);
+                        callbackFn(input);
                     });
                 }
 
@@ -331,18 +342,29 @@ export class ModalFormBuilder {
 
         form.show(player).then(response => {
             if (response.formValues === undefined) {
+                const that = this;
+                const input = {
+                    player,
+                    reason: response.cancelationReason,
+                    reopen() {
+                        system.run(() => {
+                            that.show(player);
+                        });
+                    }
+                };
+
                 this.#data.cancelationCallbacks.Any.forEach(callbackFn => {
-                    callbackFn(player);
+                    callbackFn(input);
                 });
 
                 if (response.cancelationReason === "UserBusy") {
                     this.#data.cancelationCallbacks.UserBusy.forEach(callbackFn => {
-                        callbackFn(player);
+                        callbackFn(input);
                     });
                 }
                 else if (response.cancelationReason === "UserClosed") {
                     this.#data.cancelationCallbacks.UserClosed.forEach(callbackFn => {
-                        callbackFn(player);
+                        callbackFn(input);
                     });
                 }
 
@@ -493,18 +515,29 @@ export class MessageFormBuilder {
 
         form.show(player).then(response => {
             if (response.selection === undefined) {
+                const that = this;
+                const input = {
+                    player,
+                    reason: response.cancelationReason,
+                    reopen() {
+                        system.run(() => {
+                            that.show(player);
+                        });
+                    }
+                };
+
                 this.#data.cancelationCallbacks.Any.forEach(callbackFn => {
-                    callbackFn(player);
+                    callbackFn(input);
                 });
 
                 if (response.cancelationReason === "UserBusy") {
                     this.#data.cancelationCallbacks.UserBusy.forEach(callbackFn => {
-                        callbackFn(player);
+                        callbackFn(input);
                     });
                 }
                 else if (response.cancelationReason === "UserClosed") {
                     this.#data.cancelationCallbacks.UserClosed.forEach(callbackFn => {
-                        callbackFn(player);
+                        callbackFn(input);
                     });
                 }
 
