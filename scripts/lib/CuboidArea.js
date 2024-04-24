@@ -1,4 +1,4 @@
-import { BlockAreaSize, Dimension, world } from "@minecraft/server";
+import { Dimension, world } from "@minecraft/server";
 
 import { MultiDimensionalVector } from "./MultiDimensionalVector";
 
@@ -120,7 +120,7 @@ export class CuboidArea {
             throw new TypeError();
         }
 
-        const list = dimension.getEntities({ ...options, location: this.min, volume: new BlockAreaSize(this.length.x, this.length.y, this.length.z) });
+        const list = dimension.getEntities({ ...options, location: this.min, volume: this.length });
 
         return list;
     }
